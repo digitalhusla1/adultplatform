@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Adult Content Platform</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <header class="header">
+        <div class="container">
+            <h1 class="logo">
+                <i class="fas fa-play-circle"></i>
+                Adult Platform
+            </h1>
+            <nav class="nav">
+                <ul class="nav-menu">
+                    <li><a href="index.html" class="nav-link active">Home</a></li>
+                    <li class="dropdown">
+                        <a href="categories.html" class="nav-link dropdown-toggle">Categories <i class="fas fa-chevron-down"></i></a>
+                        <ul class="dropdown-menu">
+                            <li><a href="teen.html" class="dropdown-link">Teen</a></li>
+                            <li><a href="milf.html" class="dropdown-link">MILF</a></li>
+                            <li><a href="asian.html" class="dropdown-link">Asian</a></li>
+                            <li><a href="amateur.html" class="dropdown-link">Amateur</a></li>
+                            <li><a href="anal.html" class="dropdown-link">Anal</a></li>
+                            <li><a href="mature.html" class="dropdown-link">Mature</a></li>
+                            <li><a href="lesbian.html" class="dropdown-link">Lesbian</a></li>
+                            <li><a href="ebony.html" class="dropdown-link">Ebony</a></li>
+                            <li><a href="hentai.html" class="dropdown-link">Hentai</a></li>
+                            <li><a href="creampie.html" class="dropdown-link">Creampie</a></li>
+                            <li><a href="threesome.html" class="dropdown-link">Threesome</a></li>
+                            <li><a href="outdoor.html" class="dropdown-link">Outdoor</a></li>
+                        </ul>
+                    </li>
+                    <li><a href="popular.html" class="nav-link">Popular</a></li>
+                    <li><a href="latest.html" class="nav-link">Latest</a></li>
+                </ul>
+                <button class="nav-toggle" id="navToggle" onclick="toggleNav()">
+                    <i class="fas fa-bars"></i>
+                </button>
+            </nav>
+        </div>
+    </header>
+
+    <main class="main">
+        <section class="hero">
+            <div class="container">
+                <div class="search-section">
+                    <h2>Discover Amazing Content</h2>
+                    <p>Search through thousands of videos with our powerful search engine</p>
+
+                    <div class="search-container">
+                        <div class="search-box">
+                            <input type="text" id="searchInput" placeholder="Search for videos..." class="search-input">
+                            <button id="searchBtn" class="search-btn">
+                                <i class="fas fa-search"></i>
+                            </button>
+                        </div>
+
+                        <div class="search-filters">
+                            <select id="orderSelect" class="filter-select">
+                                <option value="latest">Latest</option>
+                                <option value="top-rated">Top Rated</option>
+                                <option value="most-popular">Most Popular</option>
+                                <option value="top-weekly">Top Weekly</option>
+                                <option value="top-monthly">Top Monthly</option>
+                                <option value="longest">Longest</option>
+                                <option value="shortest">Shortest</option>
+                            </select>
+
+                            <select id="thumbsizeSelect" class="filter-select">
+                                <option value="medium">Medium Thumbnails</option>
+                                <option value="big">Large Thumbnails</option>
+                                <option value="small">Small Thumbnails</option>
+                            </select>
+
+                            <div class="content-options">
+                                <label class="checkbox-container">
+                                    <input type="checkbox" id="gayContent">
+                                    <span class="checkmark"></span>
+                                    Include Adult Content
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="results-section" id="resultsSection">
+            <div class="container">
+                <div class="loading" id="loading">
+                    <div class="spinner"></div>
+                    <p>Loading videos...</p>
+                </div>
+
+                <div class="error" id="error" style="display: none;">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <p id="errorMessage"></p>
+                </div>
+
+                <div class="results-header" id="resultsHeader" style="display: none;">
+                    <h3>Search Results</h3>
+                    <div class="results-info" id="resultsInfo"></div>
+                </div>
+
+                <div class="video-grid" id="videoGrid">
+                    <!-- Videos will be populated here -->
+                </div>
+
+                <div class="pagination" id="pagination" style="display: none;">
+                    <button id="prevPage" class="btn btn-secondary">
+                        <i class="fas fa-chevron-left"></i>
+                        Previous
+                    </button>
+                    <div class="page-info">
+                        <span id="currentPage">1</span> of <span id="totalPages">1</span>
+                    </div>
+                    <button id="nextPage" class="btn btn-secondary">
+                        Next
+                        <i class="fas fa-chevron-right"></i>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <section class="video-modal" id="videoModal" style="display: none;">
+            <div class="modal-overlay" id="modalOverlay"></div>
+            <div class="modal-content">
+                <button class="modal-close" id="modalClose">
+                    <i class="fas fa-times"></i>
+                </button>
+
+                <div class="video-player-container" id="videoPlayerContainer" style="display: none;">
+                    <div class="video-player-wrapper">
+                        <iframe id="videoPlayer" src="" frameborder="0" allowfullscreen></iframe>
+                    </div>
+                    <div class="video-info-panel" id="videoInfoPanel">
+                        <!-- Video info will be populated here -->
+                    </div>
+                </div>
+
+                <div class="video-details" id="videoDetails" style="display: none;">
+                    <!-- Video details will be populated here -->
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2024 Adult Platform. All rights reserved.</p>
+            <p class="disclaimer">
+                <i class="fas fa-info-circle"></i>
+                For educational and development purposes only.
+            </p>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>
