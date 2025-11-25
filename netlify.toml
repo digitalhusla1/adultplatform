@@ -1,0 +1,52 @@
+[build]
+  command = "echo 'No build command specified, serving static files.'"
+  publish = "/"
+
+[functions]
+  directory = "netlify/functions"
+
+[[redirects]]
+  from = "/*"
+  to = "https://hdpornlove.com/:splat"
+  status = 301!
+  force = true
+
+[[redirects]]
+  from = "/about"
+  to = "/about.html"
+  status = 200
+
+[[redirects]]
+  from = "/terms"
+  to = "/terms.html"
+  status = 200
+
+[[plugins]]
+  package = "@netlify/plugin-sitemap"
+  [plugins.inputs]
+    buildDir = "/"
+    exclude = [
+      "/404.html",
+      "/admin/*",
+      "/netlify/*"
+    ]
+    changeFreq = "daily"
+    priority = "0.7"
+
+[[redirects]]
+  from = "/admin/*"
+  to = "/index.html"
+  status = 200
+
+[[redirects]]
+  from = "/premium/*"
+  to = "/index.html"
+  status = 200
+  conditions = {Role = ["premium"]}
+
+[template.environment]
+  STRIPE_SECRET_KEY = "Your Stripe Secret Key"
+  STRIPE_PUBLISHABLE_KEY = "Your Stripe Publishable Key"
+  MAILCHIMP_API_KEY = "Your Mailchimp API Key"
+  MAILCHIMP_AUDIENCE_ID = "Your Mailchimp Audience ID"
+  CRACKREVENUE_AFFILIATE_ID = "Your CrakRevenue Affiliate ID"

@@ -31,60 +31,83 @@ let milfResults = {
 
 // Initialize the application
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('DOM Content Loaded - Initializing MILF Page');
+    try {
+        console.log('DOM Content Loaded - Initializing MILF Page');
 
-    // Initialize DOM elements after DOM is loaded
-    milfOrderSelect = document.getElementById('milfOrderSelect');
-    milfThumbsizeSelect = document.getElementById('milfThumbsizeSelect');
-    milfGayContent = document.getElementById('milfGayContent');
-    milfLoading = document.getElementById('milfLoading');
-    milfError = document.getElementById('milfError');
-    milfErrorMessage = document.getElementById('milfErrorMessage');
-    milfResultsHeader = document.getElementById('milfResultsHeader');
-    milfResultsInfo = document.getElementById('milfResultsInfo');
-    milfVideoGrid = document.getElementById('milfVideoGrid');
-    milfPagination = document.getElementById('milfPagination');
-    milfPrevPage = document.getElementById('milfPrevPage');
-    milfNextPage = document.getElementById('milfNextPage');
-    milfCurrentPageSpan = document.getElementById('milfCurrentPage');
-    milfTotalPagesSpan = document.getElementById('milfTotalPages');
+        // Initialize DOM elements after DOM is loaded
+        milfOrderSelect = document.getElementById('milfOrderSelect');
+        milfThumbsizeSelect = document.getElementById('milfThumbsizeSelect');
+        milfGayContent = document.getElementById('milfGayContent');
+        milfLoading = document.getElementById('milfLoading');
+        milfError = document.getElementById('milfError');
+        milfErrorMessage = document.getElementById('milfErrorMessage');
+        milfResultsHeader = document.getElementById('milfResultsHeader');
+        milfResultsInfo = document.getElementById('milfResultsInfo');
+        milfVideoGrid = document.getElementById('milfVideoGrid');
+        milfPagination = document.getElementById('milfPagination');
+        milfPrevPage = document.getElementById('milfPrevPage');
+        milfNextPage = document.getElementById('milfNextPage');
+        milfCurrentPageSpan = document.getElementById('milfCurrentPage');
+        milfTotalPagesSpan = document.getElementById('milfTotalPages');
 
-    initializeEventListeners();
-    loadMilfVideos();
+        if (!milfVideoGrid || !milfLoading) {
+            console.warn('MILF page required elements not found — skipping initialization.');
+            return;
+        }
+
+        initializeEventListeners();
+        loadMilfVideos();
+    } catch (err) {
+        console.error('MILF page initialization failed:', err);
+    }
 });
 
 // Event Listeners
 function initializeEventListeners() {
-    milfOrderSelect.addEventListener('change', function() {
-        milfSearch.order = this.value;
-        milfSearch.page = 1;
-        loadMilfVideos();
-    });
-
-    milfThumbsizeSelect.addEventListener('change', function() {
-        milfSearch.thumbsize = this.value;
-        loadMilfVideos();
-    });
-
-    milfGayContent.addEventListener('change', function() {
-        milfSearch.gay = this.checked ? 1 : 0;
-        milfSearch.page = 1;
-        loadMilfVideos();
-    });
-
-    milfPrevPage.addEventListener('click', function() {
-        if (milfSearch.page > 1) {
-            milfSearch.page--;
-            loadMilfVideos();
+    try {
+        if (milfOrderSelect) {
+            milfOrderSelect.addEventListener('change', function() {
+                milfSearch.order = this.value;
+                milfSearch.page = 1;
+                loadMilfVideos();
+            });
         }
-    });
 
-    milfNextPage.addEventListener('click', function() {
-        if (milfSearch.page < milfResults.total_pages) {
-            milfSearch.page++;
-            loadMilfVideos();
+        if (milfThumbsizeSelect) {
+            milfThumbsizeSelect.addEventListener('change', function() {
+                milfSearch.thumbsize = this.value;
+                loadMilfVideos();
+            });
         }
-    });
+
+        if (milfGayContent) {
+            milfGayContent.addEventListener('change', function() {
+                milfSearch.gay = this.checked ? 1 : 0;
+                milfSearch.page = 1;
+                loadMilfVideos();
+            });
+        }
+
+        if (milfPrevPage) {
+            milfPrevPage.addEventListener('click', function() {
+                if (milfSearch.page > 1) {
+                    milfSearch.page--;
+                    loadMilfVideos();
+                }
+            });
+        }
+
+        if (milfNextPage) {
+            milfNextPage.addEventListener('click', function() {
+                if (milfSearch.page < milfResults.total_pages) {
+                    milfSearch.page++;
+                    loadMilfVideos();
+                }
+            });
+        }
+    } catch (err) {
+        console.error('MILF event listener setup failed:', err);
+    }
 }
 
 // Enhanced API call with retry logic and timeout
@@ -223,11 +246,20 @@ function createMilfVideoCard(video) {
 // Show video player in modal (shared function)
 async function showVideoDetails(videoId) {
     try {
-        console.log('Loading video details for ID:', videoId);
+        const params = new URLSearchParams({
+            id: videoId,
+            thumbsize: milfSearch.thumbsize,
+            format: 'json'
+        });
 
-        // Redirect to main page with video ID
-        window.location.href = `index.html?video=${videoId}&category=MILF`;
+        const video = await fetchWithRetry(`${API_BASE_URL}/video/id/?${params}`);
 
+        if (!video || video.length === 0) {
+            showMilfError('Video not found or has been removed.');
+            return;
+        }
+
+        playVideoInline(video);
     } catch (error) {
         console.error('Video player error:', error);
         showMilfError('Failed to load video player.');

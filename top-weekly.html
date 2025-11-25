@@ -5,12 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
     <meta name="format-detection" content="telephone=no">
     <meta name="theme-color" content="#1a1a2e">
-    <title>Outdoor Videos - HD Porn Love</title>
-    <meta name="description" content="Watch and download free HD porn videos on HDpornlove.com. High-quality XXX tube content featuring top adult stars. Updated daily.">
+    <title>Top Weekly Free HD Porn Videos - HDpornlove.com</title>
+    <meta name="description" content="Discover the best free HD porn videos of the week on HDpornlove.com. Hand-picked XXX content updated every seven days.">
     <link rel="stylesheet" href="styles.css">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <!-- Stripe.js -->
-    <script src="https://js.stripe.com/v3/"></script>
 
     <!-- Google Analytics GA4 Tag (Placeholder) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=YOUR_GA4_MEASUREMENT_ID"></script>
@@ -40,7 +38,6 @@
                 <i class="fas fa-play-circle"></i>
                 HD Porn Love
             </h1>
-            
             <nav class="nav">
                 <ul class="nav-menu">
                     <li><a href="index.html" class="nav-link">Home</a></li>
@@ -59,12 +56,12 @@
                             <li><a href="hentai.html" class="dropdown-link">Hentai</a></li>
                             <li><a href="creampie.html" class="dropdown-link">Creampie</a></li>
                             <li><a href="threesome.html" class="dropdown-link">Threesome</a></li>
-                            <li><a href="outdoor.html" class="dropdown-link active">Outdoor</a></li>
+                            <li><a href="outdoor.html" class="dropdown-link">Outdoor</a></li>
                         </ul>
                     </li>
                     <li><a href="popular.html" class="nav-link">Popular</a></li>
                     <li><a href="latest.html" class="nav-link">Latest</a></li>
-                    <li><a href="top-weekly.html" class="nav-link">Top Weekly</a></li>
+                    <li><a href="top-weekly.html" class="nav-link active">Top Weekly</a></li>
                 </ul>
                 <button class="nav-toggle" id="navToggle" onclick="toggleNav()">
                     <i class="fas fa-bars"></i>
@@ -76,75 +73,36 @@
     <main class="main">
         <section class="page-hero">
             <div class="container">
-                <h2>Outdoor Videos</h2>
-                <p>Discover outside location content in our outdoor category</p>
-
-                <div class="category-info">
-                    <div class="category-icon-large">
-                        <i class="fas fa-tree"></i>
-                    </div>
-                    <p class="category-description">
-                        Explore our collection of outdoor videos featuring scenes in natural locations.
-                        All content is for educational and entertainment purposes only.
-                    </p>
-                </div>
-
-                <div class="page-filters">
-                    <select id="outdoorOrderSelect" class="filter-select">
-                        <option value="latest">Latest</option>
-                        <option value="top-rated">Top Rated</option>
-                        <option value="most-popular">Most Popular</option>
-                        <option value="top-weekly">Top Weekly</option>
-                        <option value="top-monthly">Top Monthly</option>
-                    </select>
-
-                    <select id="outdoorThumbsizeSelect" class="filter-select">
-                        <option value="medium">Medium Thumbnails</option>
-                        <option value="big">Large Thumbnails</option>
-                        <option value="small">Small Thumbnails</option>
-                    </select>
-
-                    <div class="content-options">
-                        <label class="checkbox-container">
-                            <input type="checkbox" id="outdoorGayContent">
-                            <span class="checkmark"></span>
-                            Include Adult Content
-                        </label>
-                    </div>
-                </div>
+                <h2>Top Weekly Picks</h2>
+                <p>Hand-picked, high-quality HD porn videos updated every week. Discover the best of the best!</p>
             </div>
         </section>
 
         <section class="results-section">
             <div class="container">
-                <div class="loading" id="outdoorLoading">
+                <div class="loading" id="loading">
                     <div class="spinner"></div>
-                    <p>Loading outdoor videos...</p>
+                    <p>Loading top weekly videos...</p>
                 </div>
 
-                <div class="error" id="outdoorError" style="display: none;">
+                <div class="error" id="error" style="display: none;">
                     <i class="fas fa-exclamation-triangle"></i>
-                    <p id="outdoorErrorMessage"></p>
+                    <p id="errorMessage"></p>
                 </div>
 
-                <div class="results-header" id="outdoorResultsHeader" style="display: none;">
-                    <h3>Outdoor Videos</h3>
-                    <div class="results-info" id="outdoorResultsInfo"></div>
+                <div class="video-grid" id="videoGrid">
+                    <!-- Top weekly videos will be populated here by script.js -->
                 </div>
 
-                <div class="video-grid" id="outdoorVideoGrid">
-                    <!-- Outdoor videos will be populated here -->
-                </div>
-
-                <div class="pagination" id="outdoorPagination" style="display: none;">
-                    <button id="outdoorPrevPage" class="btn btn-secondary">
+                <div class="pagination" id="pagination" style="display: none;">
+                    <button id="prevPage" class="btn btn-secondary">
                         <i class="fas fa-chevron-left"></i>
                         Previous
                     </button>
                     <div class="page-info">
-                        <span id="outdoorCurrentPage">1</span> of <span id="outdoorTotalPages">1</span>
+                        <span id="currentPage">1</span> of <span id="totalPages">1</span>
                     </div>
-                    <button id="outdoorNextPage" class="btn btn-secondary">
+                    <button id="nextPage" class="btn btn-secondary">
                         Next
                         <i class="fas fa-chevron-right"></i>
                     </button>
@@ -234,7 +192,6 @@
 
     <script src="script.js" defer></script>
     <script src="share.js" defer></script>
-    <script src="outdoor.js" defer></script>
 
     <!-- CrakRevenue Ad Script (Placeholder) -->
     <script src="https://crakrevenue.com/ad-script.js?id=YOUR_CRACKREVENUE_AFFILIATE_ID" async></script>
@@ -270,34 +227,5 @@
             </div>
         </div>
     </div>
-    <section class="video-modal" id="videoModal" style="display: none;">
-        <div class="modal-overlay" id="modalOverlay"></div>
-        <div class="modal-content">
-            <button class="modal-close" id="modalClose">
-                <i class="fas fa-times"></i>
-            </button>
-
-            <div class="video-player-container" id="videoPlayerContainer" style="display: none;">
-                <div class="video-player-loading" id="videoPlayerLoading">
-                    <div class="spinner"></div>
-                    <p>Loading video...</p>
-                </div>
-                <div class="video-player-wrapper">
-                    <iframe id="videoPlayer" src="" frameborder="0" allowfullscreen></iframe>
-                </div>
-                <div class="video-info-panel" id="videoInfoPanel">
-                    <div class="social-share-buttons" style="margin-top: 1.5rem;">
-                        <a href="#" target="_blank" rel="noopener noreferrer" class="share-btn twitter" style="background: #1DA1F2; color: white; padding: 0.6rem 1rem; border-radius: 5px; text-decoration: none; font-size: 0.9rem; margin-right: 10px;">
-                            <i class="fab fa-twitter"></i> Share on X
-                        </a>
-                        <a href="#" target="_blank" rel="noopener noreferrer" class="share-btn reddit" style="background: #FF4500; color: white; padding: 0.6rem 1rem; border-radius: 5px; text-decoration: none; font-size: 0.9rem;">
-                            <i class="fab fa-reddit"></i> Share on Reddit
-                        </a>
-                    </div>
-                </div>
-            </div>
-            <div class="video-details" id="videoDetails" style="display: none;"></div>
-        </div>
-    </section>
 </body>
 </html>

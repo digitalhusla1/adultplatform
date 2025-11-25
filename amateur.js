@@ -14,7 +14,7 @@ let amateurCurrentPageSpan, amateurTotalPagesSpan;
 
 // State Management
 let amateurSearch = {
-    query: 'amateur',
+    query: 'all',
     page: 1,
     order: 'latest',
     thumbsize: 'medium',
@@ -31,60 +31,83 @@ let amateurResults = {
 
 // Initialize the application
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('DOM Content Loaded - Initializing Amateur Page');
+    try {
+        console.log('DOM Content Loaded - Initializing Amateur Page');
 
-    // Initialize DOM elements after DOM is loaded
-    amateurOrderSelect = document.getElementById('amateurOrderSelect');
-    amateurThumbsizeSelect = document.getElementById('amateurThumbsizeSelect');
-    amateurGayContent = document.getElementById('amateurGayContent');
-    amateurLoading = document.getElementById('amateurLoading');
-    amateurError = document.getElementById('amateurError');
-    amateurErrorMessage = document.getElementById('amateurErrorMessage');
-    amateurResultsHeader = document.getElementById('amateurResultsHeader');
-    amateurResultsInfo = document.getElementById('amateurResultsInfo');
-    amateurVideoGrid = document.getElementById('amateurVideoGrid');
-    amateurPagination = document.getElementById('amateurPagination');
-    amateurPrevPage = document.getElementById('amateurPrevPage');
-    amateurNextPage = document.getElementById('amateurNextPage');
-    amateurCurrentPageSpan = document.getElementById('amateurCurrentPage');
-    amateurTotalPagesSpan = document.getElementById('amateurTotalPages');
+        // Initialize DOM elements after DOM is loaded
+        amateurOrderSelect = document.getElementById('amateurOrderSelect');
+        amateurThumbsizeSelect = document.getElementById('amateurThumbsizeSelect');
+        amateurGayContent = document.getElementById('amateurGayContent');
+        amateurLoading = document.getElementById('amateurLoading');
+        amateurError = document.getElementById('amateurError');
+        amateurErrorMessage = document.getElementById('amateurErrorMessage');
+        amateurResultsHeader = document.getElementById('amateurResultsHeader');
+        amateurResultsInfo = document.getElementById('amateurResultsInfo');
+        amateurVideoGrid = document.getElementById('amateurVideoGrid');
+        amateurPagination = document.getElementById('amateurPagination');
+        amateurPrevPage = document.getElementById('amateurPrevPage');
+        amateurNextPage = document.getElementById('amateurNextPage');
+        amateurCurrentPageSpan = document.getElementById('amateurCurrentPage');
+        amateurTotalPagesSpan = document.getElementById('amateurTotalPages');
 
-    initializeEventListeners();
-    loadAmateurVideos();
+        if (!amateurVideoGrid || !amateurLoading) {
+            console.warn('Amateur page required elements not found — skipping initialization.');
+            return;
+        }
+
+        initializeEventListeners();
+        loadAmateurVideos();
+    } catch (err) {
+        console.error('Amateur page initialization failed:', err);
+    }
 });
 
 // Event Listeners
 function initializeEventListeners() {
-    amateurOrderSelect.addEventListener('change', function() {
-        amateurSearch.order = this.value;
-        amateurSearch.page = 1;
-        loadAmateurVideos();
-    });
-
-    amateurThumbsizeSelect.addEventListener('change', function() {
-        amateurSearch.thumbsize = this.value;
-        loadAmateurVideos();
-    });
-
-    amateurGayContent.addEventListener('change', function() {
-        amateurSearch.gay = this.checked ? 1 : 0;
-        amateurSearch.page = 1;
-        loadAmateurVideos();
-    });
-
-    amateurPrevPage.addEventListener('click', function() {
-        if (amateurSearch.page > 1) {
-            amateurSearch.page--;
-            loadAmateurVideos();
+    try {
+        if (amateurOrderSelect) {
+            amateurOrderSelect.addEventListener('change', function() {
+                amateurSearch.order = this.value;
+                amateurSearch.page = 1;
+                loadAmateurVideos();
+            });
         }
-    });
 
-    amateurNextPage.addEventListener('click', function() {
-        if (amateurSearch.page < amateurResults.total_pages) {
-            amateurSearch.page++;
-            loadAmateurVideos();
+        if (amateurThumbsizeSelect) {
+            amateurThumbsizeSelect.addEventListener('change', function() {
+                amateurSearch.thumbsize = this.value;
+                loadAmateurVideos();
+            });
         }
-    });
+
+        if (amateurGayContent) {
+            amateurGayContent.addEventListener('change', function() {
+                amateurSearch.gay = this.checked ? 1 : 0;
+                amateurSearch.page = 1;
+                loadAmateurVideos();
+            });
+        }
+
+        if (amateurPrevPage) {
+            amateurPrevPage.addEventListener('click', function() {
+                if (amateurSearch.page > 1) {
+                    amateurSearch.page--;
+                    loadAmateurVideos();
+                }
+            });
+        }
+
+        if (amateurNextPage) {
+            amateurNextPage.addEventListener('click', function() {
+                if (amateurSearch.page < amateurResults.total_pages) {
+                    amateurSearch.page++;
+                    loadAmateurVideos();
+                }
+            });
+        }
+    } catch (err) {
+        console.error('Amateur event listener setup failed:', err);
+    }
 }
 
 // Enhanced API call with retry logic and timeout
@@ -157,6 +180,7 @@ async function loadAmateurVideos() {
         };
 
         console.log(`Loaded ${amateurResults.videos.length} amateur videos`);
+        alert(`Found ${amateurResults.videos.length} amateur videos`);
         displayAmateurResults();
         updateAmateurPagination();
 
@@ -223,8 +247,20 @@ function createAmateurVideoCard(video) {
 // Show video player in modal (shared function)
 async function showVideoDetails(videoId) {
     try {
-        console.log('Loading video details for ID:', videoId);
-        window.location.href = `index.html?video=${videoId}&category=Amateur`;
+        const params = new URLSearchParams({
+            id: videoId,
+            thumbsize: amateurSearch.thumbsize,
+            format: 'json'
+        });
+
+        const video = await fetchWithRetry(`${API_BASE_URL}/video/id/?${params}`);
+
+        if (!video || video.length === 0) {
+            showAmateurError('Video not found or has been removed.');
+            return;
+        }
+
+        playVideoInline(video);
     } catch (error) {
         console.error('Video player error:', error);
         showAmateurError('Failed to load video player.');

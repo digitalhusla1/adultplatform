@@ -28,69 +28,83 @@ let matureResults = {
 
 // Initialize the application
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('DOM Content Loaded - Initializing Mature Page');
+    try {
+        console.log('DOM Content Loaded - Initializing Mature Page');
 
-    // Initialize DOM elements after DOM is loaded
-    matureOrderSelect = document.getElementById('matureOrderSelect');
-    matureThumbsizeSelect = document.getElementById('matureThumbsizeSelect');
-    matureGayContent = document.getElementById('matureGayContent');
-    matureLoading = document.getElementById('matureLoading');
-    matureError = document.getElementById('matureError');
-    matureErrorMessage = document.getElementById('matureErrorMessage');
-    matureResultsHeader = document.getElementById('matureResultsHeader');
-    matureResultsInfo = document.getElementById('matureResultsInfo');
-    matureVideoGrid = document.getElementById('matureVideoGrid');
-    maturePagination = document.getElementById('maturePagination');
-    maturePrevPage = document.getElementById('maturePrevPage');
-    matureNextPage = document.getElementById('matureNextPage');
-    matureCurrentPageSpan = document.getElementById('matureCurrentPage');
-    matureTotalPagesSpan = document.getElementById('matureTotalPages');
+        // Initialize DOM elements after DOM is loaded
+        matureOrderSelect = document.getElementById('matureOrderSelect');
+        matureThumbsizeSelect = document.getElementById('matureThumbsizeSelect');
+        matureGayContent = document.getElementById('matureGayContent');
+        matureLoading = document.getElementById('matureLoading');
+        matureError = document.getElementById('matureError');
+        matureErrorMessage = document.getElementById('matureErrorMessage');
+        matureResultsHeader = document.getElementById('matureResultsHeader');
+        matureResultsInfo = document.getElementById('matureResultsInfo');
+        matureVideoGrid = document.getElementById('matureVideoGrid');
+        maturePagination = document.getElementById('maturePagination');
+        maturePrevPage = document.getElementById('maturePrevPage');
+        matureNextPage = document.getElementById('matureNextPage');
+        matureCurrentPageSpan = document.getElementById('matureCurrentPage');
+        matureTotalPagesSpan = document.getElementById('matureTotalPages');
 
-    // Debug: Check if all required DOM elements exist
-    console.log('Checking DOM elements...');
-    console.log('matureOrderSelect:', matureOrderSelect);
-    console.log('matureThumbsizeSelect:', matureThumbsizeSelect);
-    console.log('matureGayContent:', matureGayContent);
-    console.log('matureLoading:', matureLoading);
-    console.log('matureError:', matureError);
-    console.log('matureVideoGrid:', matureVideoGrid);
+        if (!matureVideoGrid || !matureLoading) {
+            console.warn('Mature page required elements not found — skipping initialization.');
+            return;
+        }
 
-    initializeEventListeners();
-    loadMatureVideos();
+        initializeEventListeners();
+        loadMatureVideos();
+    } catch (err) {
+        console.error('Mature page initialization failed:', err);
+    }
 });
 
 // Event Listeners
 function initializeEventListeners() {
-    matureOrderSelect.addEventListener('change', function() {
-        matureSearch.order = this.value;
-        matureSearch.page = 1;
-        loadMatureVideos();
-    });
-
-    matureThumbsizeSelect.addEventListener('change', function() {
-        matureSearch.thumbsize = this.value;
-        loadMatureVideos();
-    });
-
-    matureGayContent.addEventListener('change', function() {
-        matureSearch.gay = this.checked ? 1 : 0;
-        matureSearch.page = 1;
-        loadMatureVideos();
-    });
-
-    maturePrevPage.addEventListener('click', function() {
-        if (matureSearch.page > 1) {
-            matureSearch.page--;
-            loadMatureVideos();
+    try {
+        if (matureOrderSelect) {
+            matureOrderSelect.addEventListener('change', function() {
+                matureSearch.order = this.value;
+                matureSearch.page = 1;
+                loadMatureVideos();
+            });
         }
-    });
 
-    matureNextPage.addEventListener('click', function() {
-        if (matureSearch.page < matureResults.total_pages) {
-            matureSearch.page++;
-            loadMatureVideos();
+        if (matureThumbsizeSelect) {
+            matureThumbsizeSelect.addEventListener('change', function() {
+                matureSearch.thumbsize = this.value;
+                loadMatureVideos();
+            });
         }
-    });
+
+        if (matureGayContent) {
+            matureGayContent.addEventListener('change', function() {
+                matureSearch.gay = this.checked ? 1 : 0;
+                matureSearch.page = 1;
+                loadMatureVideos();
+            });
+        }
+
+        if (maturePrevPage) {
+            maturePrevPage.addEventListener('click', function() {
+                if (matureSearch.page > 1) {
+                    matureSearch.page--;
+                    loadMatureVideos();
+                }
+            });
+        }
+
+        if (matureNextPage) {
+            matureNextPage.addEventListener('click', function() {
+                if (matureSearch.page < matureResults.total_pages) {
+                    matureSearch.page++;
+                    loadMatureVideos();
+                }
+            });
+        }
+    } catch (err) {
+        console.error('Mature event listener setup failed:', err);
+    }
 }
 
 // Load Mature videos
@@ -189,8 +203,20 @@ function createMatureVideoCard(video) {
 // Show video player in modal (shared function)
 async function showVideoDetails(videoId) {
     try {
-        console.log('Loading video details for ID:', videoId);
-        window.location.href = `index.html?video=${videoId}&category=Mature`;
+        const params = new URLSearchParams({
+            id: videoId,
+            thumbsize: matureSearch.thumbsize,
+            format: 'json'
+        });
+
+        const video = await fetchWithRetry(`${API_BASE_URL}/video/id/?${params}`);
+
+        if (!video || video.length === 0) {
+            showMatureError('Video not found or has been removed.');
+            return;
+        }
+
+        playVideoInline(video);
     } catch (error) {
         console.error('Video player error:', error);
         showMatureError('Failed to load video player.');

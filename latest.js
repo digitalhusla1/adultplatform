@@ -39,36 +39,58 @@ let latestResults = {
 
 // Initialize the application
 document.addEventListener('DOMContentLoaded', function() {
-    initializeEventListeners();
-    loadLatestVideos();
+    try {
+        // Ensure main elements exist before initializing
+        if (!latestVideoGrid || !latestLoading) {
+            console.warn('Latest page required elements not found — skipping initialization.');
+            return;
+        }
+
+        initializeEventListeners();
+        loadLatestVideos();
+    } catch (err) {
+        console.error('Latest page initialization failed:', err);
+    }
 });
 
 // Event Listeners
 function initializeEventListeners() {
-    latestThumbsizeSelect.addEventListener('change', function() {
-        latestSearch.thumbsize = this.value;
-        loadLatestVideos();
-    });
-
-    latestGayContent.addEventListener('change', function() {
-        latestSearch.gay = this.checked ? 1 : 0;
-        latestSearch.page = 1;
-        loadLatestVideos();
-    });
-
-    latestPrevPage.addEventListener('click', function() {
-        if (latestSearch.page > 1) {
-            latestSearch.page--;
-            loadLatestVideos();
+    try {
+        if (latestThumbsizeSelect) {
+            latestThumbsizeSelect.addEventListener('change', function() {
+                latestSearch.thumbsize = this.value;
+                loadLatestVideos();
+            });
         }
-    });
 
-    latestNextPage.addEventListener('click', function() {
-        if (latestSearch.page < latestResults.total_pages) {
-            latestSearch.page++;
-            loadLatestVideos();
+        if (latestGayContent) {
+            latestGayContent.addEventListener('change', function() {
+                latestSearch.gay = this.checked ? 1 : 0;
+                latestSearch.page = 1;
+                loadLatestVideos();
+            });
         }
-    });
+
+        if (latestPrevPage) {
+            latestPrevPage.addEventListener('click', function() {
+                if (latestSearch.page > 1) {
+                    latestSearch.page--;
+                    loadLatestVideos();
+                }
+            });
+        }
+
+        if (latestNextPage) {
+            latestNextPage.addEventListener('click', function() {
+                if (latestSearch.page < latestResults.total_pages) {
+                    latestSearch.page++;
+                    loadLatestVideos();
+                }
+            });
+        }
+    } catch (err) {
+        console.error('Latest event listener setup failed:', err);
+    }
 }
 
 // Load latest videos
@@ -208,16 +230,27 @@ async function showVideoDetails(videoId) {
 
 // Play video inline in modal (shared function)
 function playVideoInline(video) {
+    // Prefer canonical site player if available
+    if (window.sitePlayVideoInline && typeof window.sitePlayVideoInline === 'function') {
+        try {
+            window.sitePlayVideoInline(video);
+            return;
+        } catch (err) {
+            console.warn('sitePlayVideoInline failed; falling back to local logic:', err);
+        }
+    }
+
+    // Local fallback: keep a compatible inline player if canonical helper isn't available
     if (!video.embed) {
         showLatestError('Video embed not available.');
         return;
     }
 
-    // Get the main page's modal elements
-    const mainModal = window.parent ? window.parent.document.getElementById('videoModal') : document.getElementById('videoModal');
-    const mainPlayerContainer = window.parent ? window.parent.document.getElementById('videoPlayerContainer') : document.getElementById('videoPlayerContainer');
-    const mainPlayer = window.parent ? window.parent.document.getElementById('videoPlayer') : document.getElementById('videoPlayer');
-    const mainInfoPanel = window.parent ? window.parent.document.getElementById('videoInfoPanel') : document.getElementById('videoInfoPanel');
+    // Use local DOM elements (no window.parent access) when available
+    const mainModal = document.getElementById('videoModal');
+    const mainPlayerContainer = document.getElementById('videoPlayerContainer');
+    const mainPlayer = document.getElementById('videoPlayer');
+    const mainInfoPanel = document.getElementById('videoInfoPanel');
 
     if (!mainModal || !mainPlayerContainer || !mainPlayer || !mainInfoPanel) {
         // Fallback: redirect to main page
@@ -231,18 +264,31 @@ function playVideoInline(video) {
     // Set video player source
     mainPlayer.src = video.embed;
 
-    // Update video info panel
-    updateVideoInfoPanel(video, mainInfoPanel);
+    // Update video info panel (use canonical if present)
+    if (window.siteUpdateVideoInfoPanel && typeof window.siteUpdateVideoInfoPanel === 'function') {
+        window.siteUpdateVideoInfoPanel(video, mainInfoPanel);
+    } else {
+        updateVideoInfoPanel(video, mainInfoPanel);
+    }
 
     // Show modal
     mainModal.style.display = 'block';
 
-    // Track video play
-    console.log('Playing video:', video.title);
+    console.log('Playing video (latest fallback):', video.title);
 }
 
 // Update video info panel (shared function)
 function updateVideoInfoPanel(video, infoPanel = null) {
+    // Prefer canonical info panel updater if available
+    if (window.siteUpdateVideoInfoPanel && typeof window.siteUpdateVideoInfoPanel === 'function') {
+        try {
+            window.siteUpdateVideoInfoPanel(video, infoPanel);
+            return;
+        } catch (err) {
+            console.warn('siteUpdateVideoInfoPanel failed; falling back to local update:', err);
+        }
+    }
+
     const panel = infoPanel || document.getElementById('videoInfoPanel');
     if (!panel) return;
 

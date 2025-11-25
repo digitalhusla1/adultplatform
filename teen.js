@@ -31,60 +31,83 @@ let teenResults = {
 
 // Initialize the application
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('DOM Content Loaded - Initializing Teen Page');
+    try {
+        console.log('DOM Content Loaded - Initializing Teen Page');
 
-    // Initialize DOM elements after DOM is loaded
-    teenOrderSelect = document.getElementById('teenOrderSelect');
-    teenThumbsizeSelect = document.getElementById('teenThumbsizeSelect');
-    teenGayContent = document.getElementById('teenGayContent');
-    teenLoading = document.getElementById('teenLoading');
-    teenError = document.getElementById('teenError');
-    teenErrorMessage = document.getElementById('teenErrorMessage');
-    teenResultsHeader = document.getElementById('teenResultsHeader');
-    teenResultsInfo = document.getElementById('teenResultsInfo');
-    teenVideoGrid = document.getElementById('teenVideoGrid');
-    teenPagination = document.getElementById('teenPagination');
-    teenPrevPage = document.getElementById('teenPrevPage');
-    teenNextPage = document.getElementById('teenNextPage');
-    teenCurrentPageSpan = document.getElementById('teenCurrentPage');
-    teenTotalPagesSpan = document.getElementById('teenTotalPages');
+        // Initialize DOM elements after DOM is loaded
+        teenOrderSelect = document.getElementById('teenOrderSelect');
+        teenThumbsizeSelect = document.getElementById('teenThumbsizeSelect');
+        teenGayContent = document.getElementById('teenGayContent');
+        teenLoading = document.getElementById('teenLoading');
+        teenError = document.getElementById('teenError');
+        teenErrorMessage = document.getElementById('teenErrorMessage');
+        teenResultsHeader = document.getElementById('teenResultsHeader');
+        teenResultsInfo = document.getElementById('teenResultsInfo');
+        teenVideoGrid = document.getElementById('teenVideoGrid');
+        teenPagination = document.getElementById('teenPagination');
+        teenPrevPage = document.getElementById('teenPrevPage');
+        teenNextPage = document.getElementById('teenNextPage');
+        teenCurrentPageSpan = document.getElementById('teenCurrentPage');
+        teenTotalPagesSpan = document.getElementById('teenTotalPages');
 
-    initializeEventListeners();
-    loadTeenVideos();
+        if (!teenVideoGrid || !teenLoading) {
+            console.warn('Teen page required elements not found — skipping initialization.');
+            return;
+        }
+
+        initializeEventListeners();
+        loadTeenVideos();
+    } catch (err) {
+        console.error('Teen page initialization failed:', err);
+    }
 });
 
 // Event Listeners
 function initializeEventListeners() {
-    teenOrderSelect.addEventListener('change', function() {
-        teenSearch.order = this.value;
-        teenSearch.page = 1;
-        loadTeenVideos();
-    });
-
-    teenThumbsizeSelect.addEventListener('change', function() {
-        teenSearch.thumbsize = this.value;
-        loadTeenVideos();
-    });
-
-    teenGayContent.addEventListener('change', function() {
-        teenSearch.gay = this.checked ? 1 : 0;
-        teenSearch.page = 1;
-        loadTeenVideos();
-    });
-
-    teenPrevPage.addEventListener('click', function() {
-        if (teenSearch.page > 1) {
-            teenSearch.page--;
-            loadTeenVideos();
+    try {
+        if (teenOrderSelect) {
+            teenOrderSelect.addEventListener('change', function() {
+                teenSearch.order = this.value;
+                teenSearch.page = 1;
+                loadTeenVideos();
+            });
         }
-    });
 
-    teenNextPage.addEventListener('click', function() {
-        if (teenSearch.page < teenResults.total_pages) {
-            teenSearch.page++;
-            loadTeenVideos();
+        if (teenThumbsizeSelect) {
+            teenThumbsizeSelect.addEventListener('change', function() {
+                teenSearch.thumbsize = this.value;
+                loadTeenVideos();
+            });
         }
-    });
+
+        if (teenGayContent) {
+            teenGayContent.addEventListener('change', function() {
+                teenSearch.gay = this.checked ? 1 : 0;
+                teenSearch.page = 1;
+                loadTeenVideos();
+            });
+        }
+
+        if (teenPrevPage) {
+            teenPrevPage.addEventListener('click', function() {
+                if (teenSearch.page > 1) {
+                    teenSearch.page--;
+                    loadTeenVideos();
+                }
+            });
+        }
+
+        if (teenNextPage) {
+            teenNextPage.addEventListener('click', function() {
+                if (teenSearch.page < teenResults.total_pages) {
+                    teenSearch.page++;
+                    loadTeenVideos();
+                }
+            });
+        }
+    } catch (err) {
+        console.error('Teen event listener setup failed:', err);
+    }
 }
 
 // Enhanced API call with retry logic and timeout
@@ -223,11 +246,20 @@ function createTeenVideoCard(video) {
 // Show video player in modal (shared function)
 async function showVideoDetails(videoId) {
     try {
-        console.log('Loading video details for ID:', videoId);
+        const params = new URLSearchParams({
+            id: videoId,
+            thumbsize: teenSearch.thumbsize,
+            format: 'json'
+        });
 
-        // Redirect to main page with video ID
-        window.location.href = `index.html?video=${videoId}&category=Teen`;
+        const video = await fetchWithRetry(`${API_BASE_URL}/video/id/?${params}`);
 
+        if (!video || video.length === 0) {
+            showTeenError('Video not found or has been removed.');
+            return;
+        }
+
+        playVideoInline(video);
     } catch (error) {
         console.error('Video player error:', error);
         showTeenError('Failed to load video player.');

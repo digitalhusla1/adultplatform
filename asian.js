@@ -31,60 +31,83 @@ let asianResults = {
 
 // Initialize the application
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('DOM Content Loaded - Initializing Asian Page');
+    try {
+        console.log('DOM Content Loaded - Initializing Asian Page');
 
-    // Initialize DOM elements after DOM is loaded
-    asianOrderSelect = document.getElementById('asianOrderSelect');
-    asianThumbsizeSelect = document.getElementById('asianThumbsizeSelect');
-    asianGayContent = document.getElementById('asianGayContent');
-    asianLoading = document.getElementById('asianLoading');
-    asianError = document.getElementById('asianError');
-    asianErrorMessage = document.getElementById('asianErrorMessage');
-    asianResultsHeader = document.getElementById('asianResultsHeader');
-    asianResultsInfo = document.getElementById('asianResultsInfo');
-    asianVideoGrid = document.getElementById('asianVideoGrid');
-    asianPagination = document.getElementById('asianPagination');
-    asianPrevPage = document.getElementById('asianPrevPage');
-    asianNextPage = document.getElementById('asianNextPage');
-    asianCurrentPageSpan = document.getElementById('asianCurrentPage');
-    asianTotalPagesSpan = document.getElementById('asianTotalPages');
+        // Initialize DOM elements after DOM is loaded
+        asianOrderSelect = document.getElementById('asianOrderSelect');
+        asianThumbsizeSelect = document.getElementById('asianThumbsizeSelect');
+        asianGayContent = document.getElementById('asianGayContent');
+        asianLoading = document.getElementById('asianLoading');
+        asianError = document.getElementById('asianError');
+        asianErrorMessage = document.getElementById('asianErrorMessage');
+        asianResultsHeader = document.getElementById('asianResultsHeader');
+        asianResultsInfo = document.getElementById('asianResultsInfo');
+        asianVideoGrid = document.getElementById('asianVideoGrid');
+        asianPagination = document.getElementById('asianPagination');
+        asianPrevPage = document.getElementById('asianPrevPage');
+        asianNextPage = document.getElementById('asianNextPage');
+        asianCurrentPageSpan = document.getElementById('asianCurrentPage');
+        asianTotalPagesSpan = document.getElementById('asianTotalPages');
 
-    initializeEventListeners();
-    loadAsianVideos();
+        if (!asianVideoGrid || !asianLoading) {
+            console.warn('Asian page required elements not found — skipping initialization.');
+            return;
+        }
+
+        initializeEventListeners();
+        loadAsianVideos();
+    } catch (err) {
+        console.error('Asian page initialization failed:', err);
+    }
 });
 
 // Event Listeners
 function initializeEventListeners() {
-    asianOrderSelect.addEventListener('change', function() {
-        asianSearch.order = this.value;
-        asianSearch.page = 1;
-        loadAsianVideos();
-    });
-
-    asianThumbsizeSelect.addEventListener('change', function() {
-        asianSearch.thumbsize = this.value;
-        loadAsianVideos();
-    });
-
-    asianGayContent.addEventListener('change', function() {
-        asianSearch.gay = this.checked ? 1 : 0;
-        asianSearch.page = 1;
-        loadAsianVideos();
-    });
-
-    asianPrevPage.addEventListener('click', function() {
-        if (asianSearch.page > 1) {
-            asianSearch.page--;
-            loadAsianVideos();
+    try {
+        if (asianOrderSelect) {
+            asianOrderSelect.addEventListener('change', function() {
+                asianSearch.order = this.value;
+                asianSearch.page = 1;
+                loadAsianVideos();
+            });
         }
-    });
 
-    asianNextPage.addEventListener('click', function() {
-        if (asianSearch.page < asianResults.total_pages) {
-            asianSearch.page++;
-            loadAsianVideos();
+        if (asianThumbsizeSelect) {
+            asianThumbsizeSelect.addEventListener('change', function() {
+                asianSearch.thumbsize = this.value;
+                loadAsianVideos();
+            });
         }
-    });
+
+        if (asianGayContent) {
+            asianGayContent.addEventListener('change', function() {
+                asianSearch.gay = this.checked ? 1 : 0;
+                asianSearch.page = 1;
+                loadAsianVideos();
+            });
+        }
+
+        if (asianPrevPage) {
+            asianPrevPage.addEventListener('click', function() {
+                if (asianSearch.page > 1) {
+                    asianSearch.page--;
+                    loadAsianVideos();
+                }
+            });
+        }
+
+        if (asianNextPage) {
+            asianNextPage.addEventListener('click', function() {
+                if (asianSearch.page < asianResults.total_pages) {
+                    asianSearch.page++;
+                    loadAsianVideos();
+                }
+            });
+        }
+    } catch (err) {
+        console.error('Asian event listener setup failed:', err);
+    }
 }
 
 // Enhanced API call with retry logic and timeout
@@ -223,11 +246,20 @@ function createAsianVideoCard(video) {
 // Show video player in modal (shared function)
 async function showVideoDetails(videoId) {
     try {
-        console.log('Loading video details for ID:', videoId);
+        const params = new URLSearchParams({
+            id: videoId,
+            thumbsize: asianSearch.thumbsize,
+            format: 'json'
+        });
 
-        // Redirect to main page with video ID
-        window.location.href = `index.html?video=${videoId}&category=Asian`;
+        const video = await fetchWithRetry(`${API_BASE_URL}/video/id/?${params}`);
 
+        if (!video || video.length === 0) {
+            showAsianError('Video not found or has been removed.');
+            return;
+        }
+
+        playVideoInline(video);
     } catch (error) {
         console.error('Video player error:', error);
         showAsianError('Failed to load video player.');

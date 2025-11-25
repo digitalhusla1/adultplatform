@@ -1,6 +1,6 @@
 // API Configuration
 const API_BASE_URL = 'https://www.eporner.com/api/v2';
-const DEFAULT_PER_PAGE = 20;
+const DEFAULT_PER_PAGE = 12; // Reduced for faster loading
 const API_TIMEOUT = 10000; // 10 seconds
 const MAX_RETRIES = 3;
 const RETRY_DELAY = 1000; // 1 second
@@ -22,19 +22,12 @@ const prevPage = document.getElementById('prevPage');
 const nextPage = document.getElementById('nextPage');
 const currentPageSpan = document.getElementById('currentPage');
 const totalPagesSpan = document.getElementById('totalPages');
-const videoModal = document.getElementById('videoModal');
-const modalOverlay = document.getElementById('modalOverlay');
-const modalClose = document.getElementById('modalClose');
-const videoDetails = document.getElementById('videoDetails');
-const videoPlayerContainer = document.getElementById('videoPlayerContainer');
-const videoPlayer = document.getElementById('videoPlayer');
-const videoInfoPanel = document.getElementById('videoInfoPanel');
 
 // State Management
-let currentSearch = {
-    query: '',
+let searchQuery = {
+    query: 'all',
     page: 1,
-    order: 'latest',
+    order: 'most-popular',
     thumbsize: 'medium',
     gay: 0,
     per_page: DEFAULT_PER_PAGE
@@ -49,94 +42,163 @@ let searchResults = {
 
 // Initialize the application
 document.addEventListener('DOMContentLoaded', function() {
-    initializeEventListeners();
+    console.log('DOM Content Loaded - Initializing Search Page');
 
-    // Check if video ID is provided in URL parameters
+    // Check URL parameters for video
     const urlParams = new URLSearchParams(window.location.search);
     const videoId = urlParams.get('video');
-    const categoryName = urlParams.get('category');
+    const category = urlParams.get('category');
 
     if (videoId) {
-        // If video ID is provided, play the video directly
-        console.log('Video ID found in URL:', videoId, 'Category:', categoryName);
-        showVideoDetails(videoId);
+        // Show video player for selected video
+        loadVideoById(videoId);
+        return;
+    }
+
+    // Only initialize global search if search elements exist on the page
+    if (searchBtn && searchInput) {
+        initializeEventListeners();
+
+        // Load initial search if no query
+        const query = urlParams.get('q');
+        if (query) {
+            searchInput.value = query;
+            searchQuery.query = query;
+            performSearch();
+        } else {
+            // Load default videos (popular ones)
+            searchQuery.query = 'all';
+            performSearch();
+        }
     } else {
-        // Otherwise, perform initial search
-        performInitialSearch();
+        console.log('Search elements not found on this page; skipping global search initialization.');
     }
 });
 
 // Event Listeners
 function initializeEventListeners() {
-    searchBtn.addEventListener('click', handleSearch);
+    // Guard: ensure required elements exist
+    if (!searchBtn || !searchInput) return;
+
+    searchBtn.addEventListener('click', performSearchFromInput);
     searchInput.addEventListener('keypress', function(e) {
         if (e.key === 'Enter') {
-            handleSearch();
+            performSearchFromInput();
         }
     });
 
-    orderSelect.addEventListener('change', function() {
-        currentSearch.order = this.value;
-        if (currentSearch.query) {
-            searchVideos();
-        }
-    });
+    if (orderSelect) {
+        orderSelect.addEventListener('change', function() {
+            searchQuery.order = this.value;
+            searchQuery.page = 1;
+            performSearch();
+        });
+    }
 
-    thumbsizeSelect.addEventListener('change', function() {
-        currentSearch.thumbsize = this.value;
-        if (currentSearch.query) {
-            searchVideos();
-        }
-    });
+    if (thumbsizeSelect) {
+        thumbsizeSelect.addEventListener('change', function() {
+            searchQuery.thumbsize = this.value;
+            performSearch();
+        });
+    }
 
-    gayContent.addEventListener('change', function() {
-        currentSearch.gay = this.checked ? 1 : 0;
-        if (currentSearch.query) {
-            searchVideos();
-        }
-    });
+    if (gayContent) {
+        gayContent.addEventListener('change', function() {
+            searchQuery.gay = this.checked ? 1 : 0;
+            searchQuery.page = 1;
+            performSearch();
+        });
+    }
 
-    prevPage.addEventListener('click', function() {
-        if (currentSearch.page > 1) {
-            currentSearch.page--;
-            searchVideos();
-        }
-    });
+    if (prevPage) {
+        prevPage.addEventListener('click', function() {
+            if (searchQuery.page > 1) {
+                searchQuery.page--;
+                performSearch();
+            }
+        });
+    }
 
-    nextPage.addEventListener('click', function() {
-        if (currentSearch.page < searchResults.total_pages) {
-            currentSearch.page++;
-            searchVideos();
-        }
-    });
-
-    modalClose.addEventListener('click', closeVideoModal);
-    modalOverlay.addEventListener('click', closeVideoModal);
-
-    // Keyboard navigation
-    document.addEventListener('keydown', function(e) {
-        if (e.key === 'Escape' && videoModal.style.display !== 'none') {
-            closeVideoModal();
-        }
-    });
-}
-
-// Handle search button click
-function handleSearch() {
-    const query = searchInput.value.trim();
-    if (query) {
-        currentSearch.query = query;
-        currentSearch.page = 1;
-        searchVideos();
-    } else {
-        showError('Please enter a search term');
+    if (nextPage) {
+        nextPage.addEventListener('click', function() {
+            if (searchQuery.page < searchResults.total_pages) {
+                searchQuery.page++;
+                performSearch();
+            }
+        });
     }
 }
 
-// Perform initial search with default query
-function performInitialSearch() {
-    currentSearch.query = 'all'; // Use 'all' to get all videos as per API docs
-    searchVideos();
+// Get search query from input
+function performSearchFromInput() {
+    const query = searchInput.value.trim();
+    if (query) {
+        searchQuery.query = query;
+        searchQuery.page = 1;
+        performSearch();
+    }
+}
+
+// Perform search
+async function performSearch() {
+    showLoading();
+
+    try {
+        const params = new URLSearchParams({
+            query: searchQuery.query,
+            per_page: searchQuery.per_page,
+            page: searchQuery.page,
+            thumbsize: searchQuery.thumbsize,
+            order: searchQuery.order,
+            gay: searchQuery.gay,
+            format: 'json'
+        });
+
+        console.log('Performing search with params:', params.toString());
+
+        const data = await fetchWithRetry(`${API_BASE_URL}/video/search/?${params}`);
+
+        searchResults = {
+            videos: data.videos || [],
+            total_count: data.total_count || 0,
+            total_pages: data.total_pages || 0,
+            current_page: data.page || 1
+        };
+
+        console.log(`Loaded ${searchResults.videos.length} search results`);
+        displaySearchResults();
+        updatePagination();
+
+    } catch (err) {
+        console.error('Search error:', err);
+        showError(`Failed to fetch videos: ${err.message}. Please try again later.`);
+    }
+}
+
+// Load video by ID (for direct video links)
+async function loadVideoById(videoId) {
+    showLoading();
+
+    try {
+        const params = new URLSearchParams({
+            id: videoId,
+            thumbsize: searchQuery.thumbsize,
+            format: 'json'
+        });
+
+        const data = await fetchWithRetry(`${API_BASE_URL}/video/id/?${params}`);
+
+        if (!data || data.length === 0) {
+            showError('Video not found or has been removed.');
+            return;
+        }
+
+        playVideoInline(data);
+
+    } catch (err) {
+        console.error('Video load error:', err);
+        showError(`Failed to load video: ${err.message}`);
+    }
 }
 
 // Enhanced API call with retry logic and timeout
@@ -182,42 +244,6 @@ async function fetchWithRetry(url, options = {}, retries = MAX_RETRIES) {
     }
 }
 
-// Search videos using the API with enhanced error handling
-async function searchVideos() {
-    showLoading();
-
-    try {
-        const params = new URLSearchParams({
-            query: currentSearch.query,
-            per_page: currentSearch.per_page,
-            page: currentSearch.page,
-            thumbsize: currentSearch.thumbsize,
-            order: currentSearch.order,
-            gay: currentSearch.gay,
-            format: 'json'
-        });
-
-        console.log('Fetching videos with params:', params.toString());
-
-        const data = await fetchWithRetry(`${API_BASE_URL}/video/search/?${params}`);
-
-        searchResults = {
-            videos: data.videos || [],
-            total_count: data.total_count || 0,
-            total_pages: data.total_pages || 0,
-            current_page: data.page || 1
-        };
-
-        console.log(`Loaded ${searchResults.videos.length} videos`);
-        displaySearchResults();
-        updatePagination();
-
-    } catch (error) {
-        console.error('Search error:', error);
-        showError(`Failed to fetch videos: ${error.message}. Please try again later.`);
-    }
-}
-
 // Display search results
 function displaySearchResults() {
     hideLoading();
@@ -225,7 +251,7 @@ function displaySearchResults() {
     showResultsHeader();
 
     if (searchResults.videos.length === 0) {
-        showError('No videos found for your search.');
+        showError('No videos found for your search term.');
         return;
     }
 
@@ -237,7 +263,7 @@ function displaySearchResults() {
     });
 }
 
-// Create a video card element
+// Create a video card
 function createVideoCard(video) {
     const card = document.createElement('div');
     card.className = 'video-card';
@@ -274,62 +300,42 @@ function createVideoCard(video) {
 
 // Show video player in modal
 async function showVideoDetails(videoId) {
-    try {
-        const params = new URLSearchParams({
-            id: videoId,
-            thumbsize: currentSearch.thumbsize,
-            format: 'json'
-        });
-
-        const response = await fetch(`${API_BASE_URL}/video/id/?${params}`);
-
-        if (!response.ok) {
-            throw new Error(`API Error: ${response.status} ${response.statusText}`);
-        }
-
-        const video = await response.json();
-
-        if (!video || video.length === 0) {
-            showError('Video not found or has been removed.');
-            return;
-        }
-
-        playVideoInline(video);
-        videoModal.style.display = 'block';
-
-    } catch (error) {
-        console.error('Video player error:', error);
-        showError('Failed to load video player.');
-    }
+    // Navigate to video URL
+    window.location.href = `index.html?video=${videoId}`;
 }
 
-// Play video inline in modal
 function playVideoInline(video) {
-    if (!video.embed) {
-        showError('Video embed not available.');
+    const modal = document.getElementById('videoModal');
+    const playerContainer = document.getElementById('videoPlayerContainer');
+    const player = document.getElementById('videoPlayer');
+    const infoPanel = document.getElementById('videoInfoPanel');
+
+    if (!modal || !playerContainer || !player || !infoPanel) {
+        console.error('Video modal elements not found');
         return;
     }
 
     // Show video player container, hide details
-    videoPlayerContainer.style.display = 'flex';
-    videoDetails.style.display = 'none';
+    playerContainer.style.display = 'flex';
 
     // Set video player source
-    videoPlayer.src = video.embed;
+    player.src = video.embed;
 
     // Update video info panel
-    updateVideoInfoPanel(video);
+    updateVideoInfoPanel(video, infoPanel);
 
-    // Track video play
+    // Show modal
+    modal.style.display = 'block';
+
     console.log('Playing video:', video.title);
 }
 
 // Update video info panel
-function updateVideoInfoPanel(video) {
-    const defaultThumb = video.default_thumb;
-    const thumbUrl = defaultThumb ? defaultThumb.src : 'https://via.placeholder.com/640x360?text=No+Image';
+function updateVideoInfoPanel(video, panel = null) {
+    const infoPanel = panel || document.getElementById('videoInfoPanel');
+    if (!infoPanel) return;
 
-    videoInfoPanel.innerHTML = `
+    infoPanel.innerHTML = `
         <div class="video-info-title">${video.title}</div>
         <div class="video-info-stats">
             <div class="video-info-stat">
@@ -357,66 +363,22 @@ function updateVideoInfoPanel(video) {
     `;
 }
 
-// Show video details (for info only)
-function showVideoInfoOnly(video) {
-    const defaultThumb = video.default_thumb;
-    const thumbUrl = defaultThumb ? defaultThumb.src : 'https://via.placeholder.com/640x360?text=No+Image';
-
-    videoDetails.innerHTML = `
-        <div style="text-align: center; margin-bottom: 1rem;">
-            <img src="${thumbUrl}" alt="${video.title}" style="max-width: 100%; border-radius: 8px;">
-        </div>
-        <h3>${video.title}</h3>
-
-        <div class="video-detail-row">
-            <span class="video-detail-label">Views:</span>
-            <span class="video-detail-value">${formatNumber(video.views)}</span>
-        </div>
-
-        <div class="video-detail-row">
-            <span class="video-detail-label">Rating:</span>
-            <span class="video-detail-value">${video.rate || 'N/A'}</span>
-        </div>
-
-        <div class="video-detail-row">
-            <span class="video-detail-label">Duration:</span>
-            <span class="video-detail-value">${video.length_min}</span>
-        </div>
-
-        <div class="video-detail-row">
-            <span class="video-detail-label">Added:</span>
-            <span class="video-detail-value">${formatDate(video.added)}</span>
-        </div>
-
-        ${video.keywords ? `
-        <div class="video-detail-row">
-            <span class="video-detail-label">Keywords:</span>
-            <span class="video-detail-value">${video.keywords}</span>
-        </div>
-        ` : ''}
-
-        ${video.thumbs && video.thumbs.length > 0 ? `
-        <div class="video-detail-row">
-            <span class="video-detail-label">Thumbnails:</span>
-            <span class="video-detail-value">
-                <div class="video-thumbnails">
-                    ${video.thumbs.map(thumb => `
-                        <img src="${thumb.src}" alt="Thumbnail" class="video-thumb" loading="lazy">
-                    `).join('')}
-                </div>
-            </span>
-        </div>
-        ` : ''}
-    `;
-}
+// Expose canonical helpers for other page scripts to use
+// These are attached to the window to avoid load-order issues.
+window.sitePlayVideoInline = playVideoInline;
+window.siteUpdateVideoInfoPanel = updateVideoInfoPanel;
+window.siteFetchWithRetry = fetchWithRetry;
+window.siteFormatNumber = formatNumber;
+window.siteFormatDuration = formatDuration;
+window.siteFormatDate = formatDate;
 
 // Update pagination controls
 function updatePagination() {
     currentPageSpan.textContent = searchResults.current_page;
     totalPagesSpan.textContent = searchResults.total_pages;
 
-    prevPage.disabled = currentSearch.page <= 1;
-    nextPage.disabled = currentSearch.page >= searchResults.total_pages;
+    prevPage.disabled = searchQuery.page <= 1;
+    nextPage.disabled = searchQuery.page >= searchResults.total_pages;
 
     pagination.style.display = searchResults.total_pages > 1 ? 'flex' : 'none';
 }
@@ -447,28 +409,140 @@ function hideError() {
 }
 
 function showResultsHeader() {
-    const query = currentSearch.query === 'all' ? 'all videos' : `"${currentSearch.query}"`;
-    resultsInfo.textContent = `Found ${formatNumber(searchResults.total_count)} results for ${query}`;
+    const orderText = getOrderText(searchQuery.order);
+    resultsInfo.textContent = `Showing ${orderText} videos for "${searchQuery.query}" - ${formatNumber(searchResults.total_count)} total results`;
     resultsHeader.style.display = 'block';
 }
 
+// Get order description text
+function getOrderText(order) {
+    const orderMap = {
+        'latest': 'latest',
+        'top-rated': 'top rated',
+        'most-popular': 'most popular',
+        'top-weekly': 'top weekly',
+        'top-monthly': 'top monthly',
+        'longest': 'longest',
+        'shortest': 'shortest'
+    };
+    return orderMap[order] || order;
+}
+
+// Modal close functionality
+document.addEventListener('DOMContentLoaded', function() {
+    const modalClose = document.getElementById('modalClose');
+    const modalOverlay = document.getElementById('modalOverlay');
+
+    if (modalClose) {
+        modalClose.addEventListener('click', closeVideoModal);
+    }
+
+    if (modalOverlay) {
+        modalOverlay.addEventListener('click', closeVideoModal);
+    }
+});
+
 function closeVideoModal() {
-    videoModal.style.display = 'none';
+    const modal = document.getElementById('videoModal');
+    const player = document.getElementById('videoPlayer');
+    const playerContainer = document.getElementById('videoPlayerContainer');
 
-    // Stop video playback by clearing the iframe src
-    videoPlayer.src = '';
+    if (modal) {
+        modal.style.display = 'none';
+    }
 
-    // Reset modal state
-    videoPlayerContainer.style.display = 'none';
-    videoDetails.style.display = 'none';
+    if (player) {
+        player.src = '';
+    }
+
+    if (playerContainer) {
+        playerContainer.style.display = 'none';
+    }
+}
+
+// Age verification
+document.addEventListener('DOMContentLoaded', function() {
+    const confirmAgeBtn = document.getElementById('confirmAgeBtn');
+    const denyAgeBtn = document.getElementById('denyAgeBtn');
+    const ageModal = document.getElementById('ageVerificationModal');
+
+    if (confirmAgeBtn) {
+        confirmAgeBtn.addEventListener('click', function() {
+            localStorage.setItem('ageVerified', 'true');
+            ageModal.style.display = 'none';
+        });
+    }
+
+    if (denyAgeBtn) {
+        denyAgeBtn.addEventListener('click', function() {
+            window.location.href = 'https://www.google.com';
+        });
+    }
+
+    // Check if user is already verified
+    if (localStorage.getItem('ageVerified') === 'true') {
+        ageModal.style.display = 'none';
+    }
+});
+
+// Email capture form handling
+document.addEventListener('DOMContentLoaded', function() {
+    const emailInput = document.getElementById('subscriberEmail');
+    const emailConsent = document.getElementById('emailConsent');
+    const subscribeBtn = document.getElementById('subscribeForm');
+    const subscribeMessage = document.getElementById('subscribeMessage');
+    const closeEmailForm = document.getElementById('closeEmailForm');
+    const emailCaptureForm = document.getElementById('emailCaptureForm');
+
+    if (subscribeBtn) {
+        subscribeBtn.addEventListener('submit', function(e) {
+            e.preventDefault();
+            handleEmailSubscription();
+        });
+    }
+
+    if (closeEmailForm) {
+        closeEmailForm.addEventListener('click', function() {
+            emailCaptureForm.style.display = 'none';
+        });
+    }
+
+    // Show email capture form on page load or after some time
+    setTimeout(function() {
+        if (!localStorage.getItem('emailSubscribed')) {
+            emailCaptureForm.style.display = 'block';
+        }
+    }, 30000); // Show after 30 seconds
+});
+
+function handleEmailSubscription() {
+    const email = document.getElementById('subscriberEmail').value;
+    const consent = document.getElementById('emailConsent').checked;
+    const subscribeMessage = document.getElementById('subscribeMessage');
+
+    if (!email || !consent) {
+        subscribeMessage.textContent = 'Please provide your email and consent to subscription.';
+        subscribeMessage.style.color = 'red';
+        subscribeMessage.style.display = 'block';
+        return;
+    }
+
+    // Here you would typically send the email to your backend
+    // For now, we'll just simulate success
+    localStorage.setItem('emailSubscribed', 'true');
+    document.getElementById('emailCaptureForm').style.display = 'none';
+
+    // You could redirect or show a success message
+    alert('Thank you for subscribing! We will send weekly HD updates to ' + email);
 }
 
 // Utility Functions
 function formatNumber(num) {
+    num = parseInt(num);
     if (num >= 1000000) {
         return (num / 1000000).toFixed(1) + 'M';
     } else if (num >= 1000) {
-        return (num / 1000).toFixed(1) + 'K';
+        return (num / 1000).toFixed(0) + 'K';
     }
     return num.toString();
 }
@@ -476,7 +550,6 @@ function formatNumber(num) {
 function formatDuration(duration) {
     if (!duration) return '';
 
-    // Handle different duration formats
     if (duration.includes(':')) {
         const parts = duration.split(':');
         if (parts.length === 2) {
@@ -490,23 +563,15 @@ function formatDuration(duration) {
 }
 
 function formatDate(dateString) {
-    if (!dateString || dateString === '1970-01-01 01:00:00') {
-        return 'Unknown';
-    }
-
+    if (!dateString) return '';
     try {
-        const date = new Date(dateString);
-        return date.toLocaleDateString('en-US', {
-            year: 'numeric',
-            month: 'short',
-            day: 'numeric'
-        });
-    } catch (e) {
+        return new Date(dateString).toLocaleDateString();
+    } catch {
         return dateString;
     }
 }
 
-// Handle responsive navigation
+// Mobile navigation toggle
 function toggleNav() {
     const navMenu = document.querySelector('.nav-menu');
     const navToggle = document.getElementById('navToggle');
@@ -515,7 +580,6 @@ function toggleNav() {
         navMenu.classList.toggle('active');
         navToggle.classList.toggle('active');
 
-        // Update toggle icon
         const icon = navToggle.querySelector('i');
         if (navMenu.classList.contains('active')) {
             icon.className = 'fas fa-times';
@@ -524,28 +588,3 @@ function toggleNav() {
         }
     }
 }
-
-// Add some CSS animations and interactions
-document.addEventListener('DOMContentLoaded', function() {
-    // Add smooth scrolling for any anchor links
-    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-        anchor.addEventListener('click', function (e) {
-            e.preventDefault();
-            const target = document.querySelector(this.getAttribute('href'));
-            if (target) {
-                target.scrollIntoView({
-                    behavior: 'smooth'
-                });
-            }
-        });
-    });
-
-    // Add search input focus effects
-    searchInput.addEventListener('focus', function() {
-        this.parentElement.style.boxShadow = '0 0 0 3px rgba(255, 107, 107, 0.3)';
-    });
-
-    searchInput.addEventListener('blur', function() {
-        this.parentElement.style.boxShadow = 'none';
-    });
-});

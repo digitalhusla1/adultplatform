@@ -31,60 +31,83 @@ let outdoorResults = {
 
 // Initialize the application
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('DOM Content Loaded - Initializing Outdoor Page');
+    try {
+        console.log('DOM Content Loaded - Initializing Outdoor Page');
 
-    // Initialize DOM elements after DOM is loaded
-    outdoorOrderSelect = document.getElementById('outdoorOrderSelect');
-    outdoorThumbsizeSelect = document.getElementById('outdoorThumbsizeSelect');
-    outdoorGayContent = document.getElementById('outdoorGayContent');
-    outdoorLoading = document.getElementById('outdoorLoading');
-    outdoorError = document.getElementById('outdoorError');
-    outdoorErrorMessage = document.getElementById('outdoorErrorMessage');
-    outdoorResultsHeader = document.getElementById('outdoorResultsHeader');
-    outdoorResultsInfo = document.getElementById('outdoorResultsInfo');
-    outdoorVideoGrid = document.getElementById('outdoorVideoGrid');
-    outdoorPagination = document.getElementById('outdoorPagination');
-    outdoorPrevPage = document.getElementById('outdoorPrevPage');
-    outdoorNextPage = document.getElementById('outdoorNextPage');
-    outdoorCurrentPageSpan = document.getElementById('outdoorCurrentPage');
-    outdoorTotalPagesSpan = document.getElementById('outdoorTotalPages');
+        // Initialize DOM elements after DOM is loaded
+        outdoorOrderSelect = document.getElementById('outdoorOrderSelect');
+        outdoorThumbsizeSelect = document.getElementById('outdoorThumbsizeSelect');
+        outdoorGayContent = document.getElementById('outdoorGayContent');
+        outdoorLoading = document.getElementById('outdoorLoading');
+        outdoorError = document.getElementById('outdoorError');
+        outdoorErrorMessage = document.getElementById('outdoorErrorMessage');
+        outdoorResultsHeader = document.getElementById('outdoorResultsHeader');
+        outdoorResultsInfo = document.getElementById('outdoorResultsInfo');
+        outdoorVideoGrid = document.getElementById('outdoorVideoGrid');
+        outdoorPagination = document.getElementById('outdoorPagination');
+        outdoorPrevPage = document.getElementById('outdoorPrevPage');
+        outdoorNextPage = document.getElementById('outdoorNextPage');
+        outdoorCurrentPageSpan = document.getElementById('outdoorCurrentPage');
+        outdoorTotalPagesSpan = document.getElementById('outdoorTotalPages');
 
-    initializeEventListeners();
-    loadOutdoorVideos();
+        if (!outdoorVideoGrid || !outdoorLoading) {
+            console.warn('Outdoor page required elements not found — skipping initialization.');
+            return;
+        }
+
+        initializeEventListeners();
+        loadOutdoorVideos();
+    } catch (err) {
+        console.error('Outdoor page initialization failed:', err);
+    }
 });
 
 // Event Listeners
 function initializeEventListeners() {
-    outdoorOrderSelect.addEventListener('change', function() {
-        outdoorSearch.order = this.value;
-        outdoorSearch.page = 1;
-        loadOutdoorVideos();
-    });
-
-    outdoorThumbsizeSelect.addEventListener('change', function() {
-        outdoorSearch.thumbsize = this.value;
-        loadOutdoorVideos();
-    });
-
-    outdoorGayContent.addEventListener('change', function() {
-        outdoorSearch.gay = this.checked ? 1 : 0;
-        outdoorSearch.page = 1;
-        loadOutdoorVideos();
-    });
-
-    outdoorPrevPage.addEventListener('click', function() {
-        if (outdoorSearch.page > 1) {
-            outdoorSearch.page--;
-            loadOutdoorVideos();
+    try {
+        if (outdoorOrderSelect) {
+            outdoorOrderSelect.addEventListener('change', function() {
+                outdoorSearch.order = this.value;
+                outdoorSearch.page = 1;
+                loadOutdoorVideos();
+            });
         }
-    });
 
-    outdoorNextPage.addEventListener('click', function() {
-        if (outdoorSearch.page < outdoorResults.total_pages) {
-            outdoorSearch.page++;
-            loadOutdoorVideos();
+        if (outdoorThumbsizeSelect) {
+            outdoorThumbsizeSelect.addEventListener('change', function() {
+                outdoorSearch.thumbsize = this.value;
+                loadOutdoorVideos();
+            });
         }
-    });
+
+        if (outdoorGayContent) {
+            outdoorGayContent.addEventListener('change', function() {
+                outdoorSearch.gay = this.checked ? 1 : 0;
+                outdoorSearch.page = 1;
+                loadOutdoorVideos();
+            });
+        }
+
+        if (outdoorPrevPage) {
+            outdoorPrevPage.addEventListener('click', function() {
+                if (outdoorSearch.page > 1) {
+                    outdoorSearch.page--;
+                    loadOutdoorVideos();
+                }
+            });
+        }
+
+        if (outdoorNextPage) {
+            outdoorNextPage.addEventListener('click', function() {
+                if (outdoorSearch.page < outdoorResults.total_pages) {
+                    outdoorSearch.page++;
+                    loadOutdoorVideos();
+                }
+            });
+        }
+    } catch (err) {
+        console.error('Outdoor event listener setup failed:', err);
+    }
 }
 
 // Enhanced API call with retry logic and timeout
@@ -223,8 +246,20 @@ function createOutdoorVideoCard(video) {
 // Show video player in modal (shared function)
 async function showVideoDetails(videoId) {
     try {
-        console.log('Loading video details for ID:', videoId);
-        window.location.href = `index.html?video=${videoId}&category=Outdoor`;
+        const params = new URLSearchParams({
+            id: videoId,
+            thumbsize: outdoorSearch.thumbsize,
+            format: 'json'
+        });
+
+        const video = await fetchWithRetry(`${API_BASE_URL}/video/id/?${params}`);
+
+        if (!video || video.length === 0) {
+            showOutdoorError('Video not found or has been removed.');
+            return;
+        }
+
+        playVideoInline(video);
     } catch (error) {
         console.error('Video player error:', error);
         showOutdoorError('Failed to load video player.');

@@ -31,60 +31,83 @@ let threesomeResults = {
 
 // Initialize the application
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('DOM Content Loaded - Initializing Threesome Page');
+    try {
+        console.log('DOM Content Loaded - Initializing Threesome Page');
 
-    // Initialize DOM elements after DOM is loaded
-    threesomeOrderSelect = document.getElementById('threesomeOrderSelect');
-    threesomeThumbsizeSelect = document.getElementById('threesomeThumbsizeSelect');
-    threesomeGayContent = document.getElementById('threesomeGayContent');
-    threesomeLoading = document.getElementById('threesomeLoading');
-    threesomeError = document.getElementById('threesomeError');
-    threesomeErrorMessage = document.getElementById('threesomeErrorMessage');
-    threesomeResultsHeader = document.getElementById('threesomeResultsHeader');
-    threesomeResultsInfo = document.getElementById('threesomeResultsInfo');
-    threesomeVideoGrid = document.getElementById('threesomeVideoGrid');
-    threesomePagination = document.getElementById('threesomePagination');
-    threesomePrevPage = document.getElementById('threesomePrevPage');
-    threesomeNextPage = document.getElementById('threesomeNextPage');
-    threesomeCurrentPageSpan = document.getElementById('threesomeCurrentPage');
-    threesomeTotalPagesSpan = document.getElementById('threesomeTotalPages');
+        // Initialize DOM elements after DOM is loaded
+        threesomeOrderSelect = document.getElementById('threesomeOrderSelect');
+        threesomeThumbsizeSelect = document.getElementById('threesomeThumbsizeSelect');
+        threesomeGayContent = document.getElementById('threesomeGayContent');
+        threesomeLoading = document.getElementById('threesomeLoading');
+        threesomeError = document.getElementById('threesomeError');
+        threesomeErrorMessage = document.getElementById('threesomeErrorMessage');
+        threesomeResultsHeader = document.getElementById('threesomeResultsHeader');
+        threesomeResultsInfo = document.getElementById('threesomeResultsInfo');
+        threesomeVideoGrid = document.getElementById('threesomeVideoGrid');
+        threesomePagination = document.getElementById('threesomePagination');
+        threesomePrevPage = document.getElementById('threesomePrevPage');
+        threesomeNextPage = document.getElementById('threesomeNextPage');
+        threesomeCurrentPageSpan = document.getElementById('threesomeCurrentPage');
+        threesomeTotalPagesSpan = document.getElementById('threesomeTotalPages');
 
-    initializeEventListeners();
-    loadThreesomeVideos();
+        if (!threesomeVideoGrid || !threesomeLoading) {
+            console.warn('Threesome page required elements not found — skipping initialization.');
+            return;
+        }
+
+        initializeEventListeners();
+        loadThreesomeVideos();
+    } catch (err) {
+        console.error('Threesome page initialization failed:', err);
+    }
 });
 
 // Event Listeners
 function initializeEventListeners() {
-    threesomeOrderSelect.addEventListener('change', function() {
-        threesomeSearch.order = this.value;
-        threesomeSearch.page = 1;
-        loadThreesomeVideos();
-    });
-
-    threesomeThumbsizeSelect.addEventListener('change', function() {
-        threesomeSearch.thumbsize = this.value;
-        loadThreesomeVideos();
-    });
-
-    threesomeGayContent.addEventListener('change', function() {
-        threesomeSearch.gay = this.checked ? 1 : 0;
-        threesomeSearch.page = 1;
-        loadThreesomeVideos();
-    });
-
-    threesomePrevPage.addEventListener('click', function() {
-        if (threesomeSearch.page > 1) {
-            threesomeSearch.page--;
-            loadThreesomeVideos();
+    try {
+        if (threesomeOrderSelect) {
+            threesomeOrderSelect.addEventListener('change', function() {
+                threesomeSearch.order = this.value;
+                threesomeSearch.page = 1;
+                loadThreesomeVideos();
+            });
         }
-    });
 
-    threesomeNextPage.addEventListener('click', function() {
-        if (threesomeSearch.page < threesomeResults.total_pages) {
-            threesomeSearch.page++;
-            loadThreesomeVideos();
+        if (threesomeThumbsizeSelect) {
+            threesomeThumbsizeSelect.addEventListener('change', function() {
+                threesomeSearch.thumbsize = this.value;
+                loadThreesomeVideos();
+            });
         }
-    });
+
+        if (threesomeGayContent) {
+            threesomeGayContent.addEventListener('change', function() {
+                threesomeSearch.gay = this.checked ? 1 : 0;
+                threesomeSearch.page = 1;
+                loadThreesomeVideos();
+            });
+        }
+
+        if (threesomePrevPage) {
+            threesomePrevPage.addEventListener('click', function() {
+                if (threesomeSearch.page > 1) {
+                    threesomeSearch.page--;
+                    loadThreesomeVideos();
+                }
+            });
+        }
+
+        if (threesomeNextPage) {
+            threesomeNextPage.addEventListener('click', function() {
+                if (threesomeSearch.page < threesomeResults.total_pages) {
+                    threesomeSearch.page++;
+                    loadThreesomeVideos();
+                }
+            });
+        }
+    } catch (err) {
+        console.error('Threesome event listener setup failed:', err);
+    }
 }
 
 // Enhanced API call with retry logic and timeout
@@ -223,8 +246,20 @@ function createThreesomeVideoCard(video) {
 // Show video player in modal (shared function)
 async function showVideoDetails(videoId) {
     try {
-        console.log('Loading video details for ID:', videoId);
-        window.location.href = `index.html?video=${videoId}&category=Threesome`;
+        const params = new URLSearchParams({
+            id: videoId,
+            thumbsize: threesomeSearch.thumbsize,
+            format: 'json'
+        });
+
+        const video = await fetchWithRetry(`${API_BASE_URL}/video/id/?${params}`);
+
+        if (!video || video.length === 0) {
+            showThreesomeError('Video not found or has been removed.');
+            return;
+        }
+
+        playVideoInline(video);
     } catch (error) {
         console.error('Video player error:', error);
         showThreesomeError('Failed to load video player.');

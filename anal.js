@@ -31,60 +31,84 @@ let analResults = {
 
 // Initialize the application
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('DOM Content Loaded - Initializing Anal Page');
+    try {
+        console.log('DOM Content Loaded - Initializing Anal Page');
 
-    // Initialize DOM elements after DOM is loaded
-    analOrderSelect = document.getElementById('analOrderSelect');
-    analThumbsizeSelect = document.getElementById('analThumbsizeSelect');
-    analGayContent = document.getElementById('analGayContent');
-    analLoading = document.getElementById('analLoading');
-    analError = document.getElementById('analError');
-    analErrorMessage = document.getElementById('analErrorMessage');
-    analResultsHeader = document.getElementById('analResultsHeader');
-    analResultsInfo = document.getElementById('analResultsInfo');
-    analVideoGrid = document.getElementById('analVideoGrid');
-    analPagination = document.getElementById('analPagination');
-    analPrevPage = document.getElementById('analPrevPage');
-    analNextPage = document.getElementById('analNextPage');
-    analCurrentPageSpan = document.getElementById('analCurrentPage');
-    analTotalPagesSpan = document.getElementById('analTotalPages');
+        // Initialize DOM elements after DOM is loaded
+        analOrderSelect = document.getElementById('analOrderSelect');
+        analThumbsizeSelect = document.getElementById('analThumbsizeSelect');
+        analGayContent = document.getElementById('analGayContent');
+        analLoading = document.getElementById('analLoading');
+        analError = document.getElementById('analError');
+        analErrorMessage = document.getElementById('analErrorMessage');
+        analResultsHeader = document.getElementById('analResultsHeader');
+        analResultsInfo = document.getElementById('analResultsInfo');
+        analVideoGrid = document.getElementById('analVideoGrid');
+        analPagination = document.getElementById('analPagination');
+        analPrevPage = document.getElementById('analPrevPage');
+        analNextPage = document.getElementById('analNextPage');
+        analCurrentPageSpan = document.getElementById('analCurrentPage');
+        analTotalPagesSpan = document.getElementById('analTotalPages');
 
-    initializeEventListeners();
-    loadAnalVideos();
+        // If essential elements are missing, skip initialization to avoid runtime errors
+        if (!analVideoGrid || !analLoading) {
+            console.warn('Anal page required elements not found — skipping initialization.');
+            return;
+        }
+
+        initializeEventListeners();
+        loadAnalVideos();
+    } catch (err) {
+        console.error('Anal page initialization failed:', err);
+    }
 });
 
 // Event Listeners
 function initializeEventListeners() {
-    analOrderSelect.addEventListener('change', function() {
-        analSearch.order = this.value;
-        analSearch.page = 1;
-        loadAnalVideos();
-    });
-
-    analThumbsizeSelect.addEventListener('change', function() {
-        analSearch.thumbsize = this.value;
-        loadAnalVideos();
-    });
-
-    analGayContent.addEventListener('change', function() {
-        analSearch.gay = this.checked ? 1 : 0;
-        analSearch.page = 1;
-        loadAnalVideos();
-    });
-
-    analPrevPage.addEventListener('click', function() {
-        if (analSearch.page > 1) {
-            analSearch.page--;
-            loadAnalVideos();
+    try {
+        if (analOrderSelect) {
+            analOrderSelect.addEventListener('change', function() {
+                analSearch.order = this.value;
+                analSearch.page = 1;
+                loadAnalVideos();
+            });
         }
-    });
 
-    analNextPage.addEventListener('click', function() {
-        if (analSearch.page < analResults.total_pages) {
-            analSearch.page++;
-            loadAnalVideos();
+        if (analThumbsizeSelect) {
+            analThumbsizeSelect.addEventListener('change', function() {
+                analSearch.thumbsize = this.value;
+                loadAnalVideos();
+            });
         }
-    });
+
+        if (analGayContent) {
+            analGayContent.addEventListener('change', function() {
+                analSearch.gay = this.checked ? 1 : 0;
+                analSearch.page = 1;
+                loadAnalVideos();
+            });
+        }
+
+        if (analPrevPage) {
+            analPrevPage.addEventListener('click', function() {
+                if (analSearch.page > 1) {
+                    analSearch.page--;
+                    loadAnalVideos();
+                }
+            });
+        }
+
+        if (analNextPage) {
+            analNextPage.addEventListener('click', function() {
+                if (analSearch.page < analResults.total_pages) {
+                    analSearch.page++;
+                    loadAnalVideos();
+                }
+            });
+        }
+    } catch (err) {
+        console.error('Anal event listener setup failed:', err);
+    }
 }
 
 // Enhanced API call with retry logic and timeout
@@ -223,11 +247,20 @@ function createAnalVideoCard(video) {
 // Show video player in modal (shared function)
 async function showVideoDetails(videoId) {
     try {
-        console.log('Loading video details for ID:', videoId);
+        const params = new URLSearchParams({
+            id: videoId,
+            thumbsize: analSearch.thumbsize,
+            format: 'json'
+        });
 
-        // Redirect to main page with video ID
-        window.location.href = `index.html?video=${videoId}&category=Anal`;
+        const video = await fetchWithRetry(`${API_BASE_URL}/video/id/?${params}`);
 
+        if (!video || video.length === 0) {
+            showAnalError('Video not found or has been removed.');
+            return;
+        }
+
+        playVideoInline(video);
     } catch (error) {
         console.error('Video player error:', error);
         showAnalError('Failed to load video player.');

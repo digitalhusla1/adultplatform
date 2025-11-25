@@ -8,5 +8,11 @@
   },
   "keywords": [],
   "author": "",
-  "license": "ISC"
+  "license": "ISC",
+  "dependencies": {
+    "netlify-cli": "^23.11.1",
+    "netlify-identity-widget": "^1.9.2",
+    "node-fetch": "^3.3.2",
+    "stripe": "^20.0.0"
+  }
 }

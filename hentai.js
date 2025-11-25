@@ -31,60 +31,83 @@ let hentaiResults = {
 
 // Initialize the application
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('DOM Content Loaded - Initializing Hentai Page');
+    try {
+        console.log('DOM Content Loaded - Initializing Hentai Page');
 
-    // Initialize DOM elements after DOM is loaded
-    hentaiOrderSelect = document.getElementById('hentaiOrderSelect');
-    hentaiThumbsizeSelect = document.getElementById('hentaiThumbsizeSelect');
-    hentaiGayContent = document.getElementById('hentaiGayContent');
-    hentaiLoading = document.getElementById('hentaiLoading');
-    hentaiError = document.getElementById('hentaiError');
-    hentaiErrorMessage = document.getElementById('hentaiErrorMessage');
-    hentaiResultsHeader = document.getElementById('hentaiResultsHeader');
-    hentaiResultsInfo = document.getElementById('hentaiResultsInfo');
-    hentaiVideoGrid = document.getElementById('hentaiVideoGrid');
-    hentaiPagination = document.getElementById('hentaiPagination');
-    hentaiPrevPage = document.getElementById('hentaiPrevPage');
-    hentaiNextPage = document.getElementById('hentaiNextPage');
-    hentaiCurrentPageSpan = document.getElementById('hentaiCurrentPage');
-    hentaiTotalPagesSpan = document.getElementById('hentaiTotalPages');
+        // Initialize DOM elements after DOM is loaded
+        hentaiOrderSelect = document.getElementById('hentaiOrderSelect');
+        hentaiThumbsizeSelect = document.getElementById('hentaiThumbsizeSelect');
+        hentaiGayContent = document.getElementById('hentaiGayContent');
+        hentaiLoading = document.getElementById('hentaiLoading');
+        hentaiError = document.getElementById('hentaiError');
+        hentaiErrorMessage = document.getElementById('hentaiErrorMessage');
+        hentaiResultsHeader = document.getElementById('hentaiResultsHeader');
+        hentaiResultsInfo = document.getElementById('hentaiResultsInfo');
+        hentaiVideoGrid = document.getElementById('hentaiVideoGrid');
+        hentaiPagination = document.getElementById('hentaiPagination');
+        hentaiPrevPage = document.getElementById('hentaiPrevPage');
+        hentaiNextPage = document.getElementById('hentaiNextPage');
+        hentaiCurrentPageSpan = document.getElementById('hentaiCurrentPage');
+        hentaiTotalPagesSpan = document.getElementById('hentaiTotalPages');
 
-    initializeEventListeners();
-    loadHentaiVideos();
+        if (!hentaiVideoGrid || !hentaiLoading) {
+            console.warn('Hentai page required elements not found — skipping initialization.');
+            return;
+        }
+
+        initializeEventListeners();
+        loadHentaiVideos();
+    } catch (err) {
+        console.error('Hentai page initialization failed:', err);
+    }
 });
 
 // Event Listeners
 function initializeEventListeners() {
-    hentaiOrderSelect.addEventListener('change', function() {
-        hentaiSearch.order = this.value;
-        hentaiSearch.page = 1;
-        loadHentaiVideos();
-    });
-
-    hentaiThumbsizeSelect.addEventListener('change', function() {
-        hentaiSearch.thumbsize = this.value;
-        loadHentaiVideos();
-    });
-
-    hentaiGayContent.addEventListener('change', function() {
-        hentaiSearch.gay = this.checked ? 1 : 0;
-        hentaiSearch.page = 1;
-        loadHentaiVideos();
-    });
-
-    hentaiPrevPage.addEventListener('click', function() {
-        if (hentaiSearch.page > 1) {
-            hentaiSearch.page--;
-            loadHentaiVideos();
+    try {
+        if (hentaiOrderSelect) {
+            hentaiOrderSelect.addEventListener('change', function() {
+                hentaiSearch.order = this.value;
+                hentaiSearch.page = 1;
+                loadHentaiVideos();
+            });
         }
-    });
 
-    hentaiNextPage.addEventListener('click', function() {
-        if (hentaiSearch.page < hentaiResults.total_pages) {
-            hentaiSearch.page++;
-            loadHentaiVideos();
+        if (hentaiThumbsizeSelect) {
+            hentaiThumbsizeSelect.addEventListener('change', function() {
+                hentaiSearch.thumbsize = this.value;
+                loadHentaiVideos();
+            });
         }
-    });
+
+        if (hentaiGayContent) {
+            hentaiGayContent.addEventListener('change', function() {
+                hentaiSearch.gay = this.checked ? 1 : 0;
+                hentaiSearch.page = 1;
+                loadHentaiVideos();
+            });
+        }
+
+        if (hentaiPrevPage) {
+            hentaiPrevPage.addEventListener('click', function() {
+                if (hentaiSearch.page > 1) {
+                    hentaiSearch.page--;
+                    loadHentaiVideos();
+                }
+            });
+        }
+
+        if (hentaiNextPage) {
+            hentaiNextPage.addEventListener('click', function() {
+                if (hentaiSearch.page < hentaiResults.total_pages) {
+                    hentaiSearch.page++;
+                    loadHentaiVideos();
+                }
+            });
+        }
+    } catch (err) {
+        console.error('Hentai event listener setup failed:', err);
+    }
 }
 
 // Enhanced API call with retry logic and timeout
@@ -223,8 +246,20 @@ function createHentaiVideoCard(video) {
 // Show video player in modal (shared function)
 async function showVideoDetails(videoId) {
     try {
-        console.log('Loading video details for ID:', videoId);
-        window.location.href = `index.html?video=${videoId}&category=Hentai`;
+        const params = new URLSearchParams({
+            id: videoId,
+            thumbsize: hentaiSearch.thumbsize,
+            format: 'json'
+        });
+
+        const video = await fetchWithRetry(`${API_BASE_URL}/video/id/?${params}`);
+
+        if (!video || video.length === 0) {
+            showHentaiError('Video not found or has been removed.');
+            return;
+        }
+
+        playVideoInline(video);
     } catch (error) {
         console.error('Video player error:', error);
         showHentaiError('Failed to load video player.');

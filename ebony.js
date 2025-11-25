@@ -31,60 +31,83 @@ let ebonyResults = {
 
 // Initialize the application
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('DOM Content Loaded - Initializing Ebony Page');
+    try {
+        console.log('DOM Content Loaded - Initializing Ebony Page');
 
-    // Initialize DOM elements after DOM is loaded
-    ebonyOrderSelect = document.getElementById('ebonyOrderSelect');
-    ebonyThumbsizeSelect = document.getElementById('ebonyThumbsizeSelect');
-    ebonyGayContent = document.getElementById('ebonyGayContent');
-    ebonyLoading = document.getElementById('ebonyLoading');
-    ebonyError = document.getElementById('ebonyError');
-    ebonyErrorMessage = document.getElementById('ebonyErrorMessage');
-    ebonyResultsHeader = document.getElementById('ebonyResultsHeader');
-    ebonyResultsInfo = document.getElementById('ebonyResultsInfo');
-    ebonyVideoGrid = document.getElementById('ebonyVideoGrid');
-    ebonyPagination = document.getElementById('ebonyPagination');
-    ebonyPrevPage = document.getElementById('ebonyPrevPage');
-    ebonyNextPage = document.getElementById('ebonyNextPage');
-    ebonyCurrentPageSpan = document.getElementById('ebonyCurrentPage');
-    ebonyTotalPagesSpan = document.getElementById('ebonyTotalPages');
+        // Initialize DOM elements after DOM is loaded
+        ebonyOrderSelect = document.getElementById('ebonyOrderSelect');
+        ebonyThumbsizeSelect = document.getElementById('ebonyThumbsizeSelect');
+        ebonyGayContent = document.getElementById('ebonyGayContent');
+        ebonyLoading = document.getElementById('ebonyLoading');
+        ebonyError = document.getElementById('ebonyError');
+        ebonyErrorMessage = document.getElementById('ebonyErrorMessage');
+        ebonyResultsHeader = document.getElementById('ebonyResultsHeader');
+        ebonyResultsInfo = document.getElementById('ebonyResultsInfo');
+        ebonyVideoGrid = document.getElementById('ebonyVideoGrid');
+        ebonyPagination = document.getElementById('ebonyPagination');
+        ebonyPrevPage = document.getElementById('ebonyPrevPage');
+        ebonyNextPage = document.getElementById('ebonyNextPage');
+        ebonyCurrentPageSpan = document.getElementById('ebonyCurrentPage');
+        ebonyTotalPagesSpan = document.getElementById('ebonyTotalPages');
 
-    initializeEventListeners();
-    loadEbonyVideos();
+        if (!ebonyVideoGrid || !ebonyLoading) {
+            console.warn('Ebony page required elements not found — skipping initialization.');
+            return;
+        }
+
+        initializeEventListeners();
+        loadEbonyVideos();
+    } catch (err) {
+        console.error('Ebony page initialization failed:', err);
+    }
 });
 
 // Event Listeners
 function initializeEventListeners() {
-    ebonyOrderSelect.addEventListener('change', function() {
-        ebonySearch.order = this.value;
-        ebonySearch.page = 1;
-        loadEbonyVideos();
-    });
-
-    ebonyThumbsizeSelect.addEventListener('change', function() {
-        ebonySearch.thumbsize = this.value;
-        loadEbonyVideos();
-    });
-
-    ebonyGayContent.addEventListener('change', function() {
-        ebonySearch.gay = this.checked ? 1 : 0;
-        ebonySearch.page = 1;
-        loadEbonyVideos();
-    });
-
-    ebonyPrevPage.addEventListener('click', function() {
-        if (ebonySearch.page > 1) {
-            ebonySearch.page--;
-            loadEbonyVideos();
+    try {
+        if (ebonyOrderSelect) {
+            ebonyOrderSelect.addEventListener('change', function() {
+                ebonySearch.order = this.value;
+                ebonySearch.page = 1;
+                loadEbonyVideos();
+            });
         }
-    });
 
-    ebonyNextPage.addEventListener('click', function() {
-        if (ebonySearch.page < ebonyResults.total_pages) {
-            ebonySearch.page++;
-            loadEbonyVideos();
+        if (ebonyThumbsizeSelect) {
+            ebonyThumbsizeSelect.addEventListener('change', function() {
+                ebonySearch.thumbsize = this.value;
+                loadEbonyVideos();
+            });
         }
-    });
+
+        if (ebonyGayContent) {
+            ebonyGayContent.addEventListener('change', function() {
+                ebonySearch.gay = this.checked ? 1 : 0;
+                ebonySearch.page = 1;
+                loadEbonyVideos();
+            });
+        }
+
+        if (ebonyPrevPage) {
+            ebonyPrevPage.addEventListener('click', function() {
+                if (ebonySearch.page > 1) {
+                    ebonySearch.page--;
+                    loadEbonyVideos();
+                }
+            });
+        }
+
+        if (ebonyNextPage) {
+            ebonyNextPage.addEventListener('click', function() {
+                if (ebonySearch.page < ebonyResults.total_pages) {
+                    ebonySearch.page++;
+                    loadEbonyVideos();
+                }
+            });
+        }
+    } catch (err) {
+        console.error('Ebony event listener setup failed:', err);
+    }
 }
 
 // Enhanced API call with retry logic and timeout
@@ -223,8 +246,20 @@ function createEbonyVideoCard(video) {
 // Show video player in modal (shared function)
 async function showVideoDetails(videoId) {
     try {
-        console.log('Loading video details for ID:', videoId);
-        window.location.href = `index.html?video=${videoId}&category=Ebony`;
+        const params = new URLSearchParams({
+            id: videoId,
+            thumbsize: ebonySearch.thumbsize,
+            format: 'json'
+        });
+
+        const video = await fetchWithRetry(`${API_BASE_URL}/video/id/?${params}`);
+
+        if (!video || video.length === 0) {
+            showEbonyError('Video not found or has been removed.');
+            return;
+        }
+
+        playVideoInline(video);
     } catch (error) {
         console.error('Video player error:', error);
         showEbonyError('Failed to load video player.');

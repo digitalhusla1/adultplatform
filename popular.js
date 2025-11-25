@@ -40,42 +40,58 @@ let popularResults = {
 
 // Initialize the application
 document.addEventListener('DOMContentLoaded', function() {
+    // Guard - ensure required DOM elements exist on this page
+    if (!popularVideoGrid || !popularLoading) {
+        console.warn('Popular page elements not found; skipping initialization.');
+        return;
+    }
+
     initializeEventListeners();
     loadPopularVideos();
 });
 
 // Event Listeners
 function initializeEventListeners() {
-    popularOrderSelect.addEventListener('change', function() {
-        popularSearch.order = this.value;
-        popularSearch.page = 1;
-        loadPopularVideos();
-    });
-
-    popularThumbsizeSelect.addEventListener('change', function() {
-        popularSearch.thumbsize = this.value;
-        loadPopularVideos();
-    });
-
-    popularGayContent.addEventListener('change', function() {
-        popularSearch.gay = this.checked ? 1 : 0;
-        popularSearch.page = 1;
-        loadPopularVideos();
-    });
-
-    popularPrevPage.addEventListener('click', function() {
-        if (popularSearch.page > 1) {
-            popularSearch.page--;
+    if (popularOrderSelect) {
+        popularOrderSelect.addEventListener('change', function() {
+            popularSearch.order = this.value;
+            popularSearch.page = 1;
             loadPopularVideos();
-        }
-    });
+        });
+    }
 
-    popularNextPage.addEventListener('click', function() {
-        if (popularSearch.page < popularResults.total_pages) {
-            popularSearch.page++;
+    if (popularThumbsizeSelect) {
+        popularThumbsizeSelect.addEventListener('change', function() {
+            popularSearch.thumbsize = this.value;
             loadPopularVideos();
-        }
-    });
+        });
+    }
+
+    if (popularGayContent) {
+        popularGayContent.addEventListener('change', function() {
+            popularSearch.gay = this.checked ? 1 : 0;
+            popularSearch.page = 1;
+            loadPopularVideos();
+        });
+    }
+
+    if (popularPrevPage) {
+        popularPrevPage.addEventListener('click', function() {
+            if (popularSearch.page > 1) {
+                popularSearch.page--;
+                loadPopularVideos();
+            }
+        });
+    }
+
+    if (popularNextPage) {
+        popularNextPage.addEventListener('click', function() {
+            if (popularSearch.page < popularResults.total_pages) {
+                popularSearch.page++;
+                loadPopularVideos();
+            }
+        });
+    }
 }
 
 // Enhanced API call with retry logic and timeout
@@ -255,16 +271,27 @@ async function showVideoDetails(videoId) {
 
 // Play video inline in modal (shared function)
 function playVideoInline(video) {
+    // Prefer canonical site player if available
+    if (window.sitePlayVideoInline && typeof window.sitePlayVideoInline === 'function') {
+        try {
+            window.sitePlayVideoInline(video);
+            return;
+        } catch (err) {
+            console.warn('sitePlayVideoInline failed; falling back to local logic:', err);
+        }
+    }
+
+    // Local fallback: keep a compatible inline player if canonical helper isn't available
     if (!video.embed) {
         showPopularError('Video embed not available.');
         return;
     }
 
-    // Get the main page's modal elements
-    const mainModal = window.parent ? window.parent.document.getElementById('videoModal') : document.getElementById('videoModal');
-    const mainPlayerContainer = window.parent ? window.parent.document.getElementById('videoPlayerContainer') : document.getElementById('videoPlayerContainer');
-    const mainPlayer = window.parent ? window.parent.document.getElementById('videoPlayer') : document.getElementById('videoPlayer');
-    const mainInfoPanel = window.parent ? window.parent.document.getElementById('videoInfoPanel') : document.getElementById('videoInfoPanel');
+    // Use local DOM elements (no window.parent access) when available
+    const mainModal = document.getElementById('videoModal');
+    const mainPlayerContainer = document.getElementById('videoPlayerContainer');
+    const mainPlayer = document.getElementById('videoPlayer');
+    const mainInfoPanel = document.getElementById('videoInfoPanel');
 
     if (!mainModal || !mainPlayerContainer || !mainPlayer || !mainInfoPanel) {
         // Fallback: redirect to main page
@@ -278,18 +305,31 @@ function playVideoInline(video) {
     // Set video player source
     mainPlayer.src = video.embed;
 
-    // Update video info panel
-    updateVideoInfoPanel(video, mainInfoPanel);
+    // Update video info panel (use canonical if present)
+    if (window.siteUpdateVideoInfoPanel && typeof window.siteUpdateVideoInfoPanel === 'function') {
+        window.siteUpdateVideoInfoPanel(video, mainInfoPanel);
+    } else {
+        updateVideoInfoPanel(video, mainInfoPanel);
+    }
 
     // Show modal
     mainModal.style.display = 'block';
 
-    // Track video play
-    console.log('Playing video:', video.title);
+    console.log('Playing video (popular fallback):', video.title);
 }
 
 // Update video info panel (shared function)
 function updateVideoInfoPanel(video, infoPanel = null) {
+    // Prefer canonical info panel updater if available
+    if (window.siteUpdateVideoInfoPanel && typeof window.siteUpdateVideoInfoPanel === 'function') {
+        try {
+            window.siteUpdateVideoInfoPanel(video, infoPanel);
+            return;
+        } catch (err) {
+            console.warn('siteUpdateVideoInfoPanel failed; falling back to local update:', err);
+        }
+    }
+
     const panel = infoPanel || document.getElementById('videoInfoPanel');
     if (!panel) return;
 

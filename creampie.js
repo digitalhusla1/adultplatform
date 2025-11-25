@@ -31,60 +31,83 @@ let creampieResults = {
 
 // Initialize the application
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('DOM Content Loaded - Initializing Creampie Page');
+    try {
+        console.log('DOM Content Loaded - Initializing Creampie Page');
 
-    // Initialize DOM elements after DOM is loaded
-    creampieOrderSelect = document.getElementById('creampieOrderSelect');
-    creampieThumbsizeSelect = document.getElementById('creampieThumbsizeSelect');
-    creampieGayContent = document.getElementById('creampieGayContent');
-    creampieLoading = document.getElementById('creampieLoading');
-    creampieError = document.getElementById('creampieError');
-    creampieErrorMessage = document.getElementById('creampieErrorMessage');
-    creampieResultsHeader = document.getElementById('creampieResultsHeader');
-    creampieResultsInfo = document.getElementById('creampieResultsInfo');
-    creampieVideoGrid = document.getElementById('creampieVideoGrid');
-    creampiePagination = document.getElementById('creampiePagination');
-    creampiePrevPage = document.getElementById('creampiePrevPage');
-    creampieNextPage = document.getElementById('creampieNextPage');
-    creampieCurrentPageSpan = document.getElementById('creampieCurrentPage');
-    creampieTotalPagesSpan = document.getElementById('creampieTotalPages');
+        // Initialize DOM elements after DOM is loaded
+        creampieOrderSelect = document.getElementById('creampieOrderSelect');
+        creampieThumbsizeSelect = document.getElementById('creampieThumbsizeSelect');
+        creampieGayContent = document.getElementById('creampieGayContent');
+        creampieLoading = document.getElementById('creampieLoading');
+        creampieError = document.getElementById('creampieError');
+        creampieErrorMessage = document.getElementById('creampieErrorMessage');
+        creampieResultsHeader = document.getElementById('creampieResultsHeader');
+        creampieResultsInfo = document.getElementById('creampieResultsInfo');
+        creampieVideoGrid = document.getElementById('creampieVideoGrid');
+        creampiePagination = document.getElementById('creampiePagination');
+        creampiePrevPage = document.getElementById('creampiePrevPage');
+        creampieNextPage = document.getElementById('creampieNextPage');
+        creampieCurrentPageSpan = document.getElementById('creampieCurrentPage');
+        creampieTotalPagesSpan = document.getElementById('creampieTotalPages');
 
-    initializeEventListeners();
-    loadCreampieVideos();
+        if (!creampieVideoGrid || !creampieLoading) {
+            console.warn('Creampie page required elements not found — skipping initialization.');
+            return;
+        }
+
+        initializeEventListeners();
+        loadCreampieVideos();
+    } catch (err) {
+        console.error('Creampie page initialization failed:', err);
+    }
 });
 
 // Event Listeners
 function initializeEventListeners() {
-    creampieOrderSelect.addEventListener('change', function() {
-        creampieSearch.order = this.value;
-        creampieSearch.page = 1;
-        loadCreampieVideos();
-    });
-
-    creampieThumbsizeSelect.addEventListener('change', function() {
-        creampieSearch.thumbsize = this.value;
-        loadCreampieVideos();
-    });
-
-    creampieGayContent.addEventListener('change', function() {
-        creampieSearch.gay = this.checked ? 1 : 0;
-        creampieSearch.page = 1;
-        loadCreampieVideos();
-    });
-
-    creampiePrevPage.addEventListener('click', function() {
-        if (creampieSearch.page > 1) {
-            creampieSearch.page--;
-            loadCreampieVideos();
+    try {
+        if (creampieOrderSelect) {
+            creampieOrderSelect.addEventListener('change', function() {
+                creampieSearch.order = this.value;
+                creampieSearch.page = 1;
+                loadCreampieVideos();
+            });
         }
-    });
 
-    creampieNextPage.addEventListener('click', function() {
-        if (creampieSearch.page < creampieResults.total_pages) {
-            creampieSearch.page++;
-            loadCreampieVideos();
+        if (creampieThumbsizeSelect) {
+            creampieThumbsizeSelect.addEventListener('change', function() {
+                creampieSearch.thumbsize = this.value;
+                loadCreampieVideos();
+            });
         }
-    });
+
+        if (creampieGayContent) {
+            creampieGayContent.addEventListener('change', function() {
+                creampieSearch.gay = this.checked ? 1 : 0;
+                creampieSearch.page = 1;
+                loadCreampieVideos();
+            });
+        }
+
+        if (creampiePrevPage) {
+            creampiePrevPage.addEventListener('click', function() {
+                if (creampieSearch.page > 1) {
+                    creampieSearch.page--;
+                    loadCreampieVideos();
+                }
+            });
+        }
+
+        if (creampieNextPage) {
+            creampieNextPage.addEventListener('click', function() {
+                if (creampieSearch.page < creampieResults.total_pages) {
+                    creampieSearch.page++;
+                    loadCreampieVideos();
+                }
+            });
+        }
+    } catch (err) {
+        console.error('Creampie event listener setup failed:', err);
+    }
 }
 
 // Enhanced API call with retry logic and timeout
@@ -223,8 +246,20 @@ function createCreampieVideoCard(video) {
 // Show video player in modal (shared function)
 async function showVideoDetails(videoId) {
     try {
-        console.log('Loading video details for ID:', videoId);
-        window.location.href = `index.html?video=${videoId}&category=Creampie`;
+        const params = new URLSearchParams({
+            id: videoId,
+            thumbsize: creampieSearch.thumbsize,
+            format: 'json'
+        });
+
+        const video = await fetchWithRetry(`${API_BASE_URL}/video/id/?${params}`);
+
+        if (!video || video.length === 0) {
+            showCreampieError('Video not found or has been removed.');
+            return;
+        }
+
+        playVideoInline(video);
     } catch (error) {
         console.error('Video player error:', error);
         showCreampieError('Failed to load video player.');

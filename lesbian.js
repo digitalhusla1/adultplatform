@@ -31,60 +31,83 @@ let lesbianResults = {
 
 // Initialize the application
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('DOM Content Loaded - Initializing Lesbian Page');
+    try {
+        console.log('DOM Content Loaded - Initializing Lesbian Page');
 
-    // Initialize DOM elements after DOM is loaded
-    lesbianOrderSelect = document.getElementById('lesbianOrderSelect');
-    lesbianThumbsizeSelect = document.getElementById('lesbianThumbsizeSelect');
-    lesbianGayContent = document.getElementById('lesbianGayContent');
-    lesbianLoading = document.getElementById('lesbianLoading');
-    lesbianError = document.getElementById('lesbianError');
-    lesbianErrorMessage = document.getElementById('lesbianErrorMessage');
-    lesbianResultsHeader = document.getElementById('lesbianResultsHeader');
-    lesbianResultsInfo = document.getElementById('lesbianResultsInfo');
-    lesbianVideoGrid = document.getElementById('lesbianVideoGrid');
-    lesbianPagination = document.getElementById('lesbianPagination');
-    lesbianPrevPage = document.getElementById('lesbianPrevPage');
-    lesbianNextPage = document.getElementById('lesbianNextPage');
-    lesbianCurrentPageSpan = document.getElementById('lesbianCurrentPage');
-    lesbianTotalPagesSpan = document.getElementById('lesbianTotalPages');
+        // Initialize DOM elements after DOM is loaded
+        lesbianOrderSelect = document.getElementById('lesbianOrderSelect');
+        lesbianThumbsizeSelect = document.getElementById('lesbianThumbsizeSelect');
+        lesbianGayContent = document.getElementById('lesbianGayContent');
+        lesbianLoading = document.getElementById('lesbianLoading');
+        lesbianError = document.getElementById('lesbianError');
+        lesbianErrorMessage = document.getElementById('lesbianErrorMessage');
+        lesbianResultsHeader = document.getElementById('lesbianResultsHeader');
+        lesbianResultsInfo = document.getElementById('lesbianResultsInfo');
+        lesbianVideoGrid = document.getElementById('lesbianVideoGrid');
+        lesbianPagination = document.getElementById('lesbianPagination');
+        lesbianPrevPage = document.getElementById('lesbianPrevPage');
+        lesbianNextPage = document.getElementById('lesbianNextPage');
+        lesbianCurrentPageSpan = document.getElementById('lesbianCurrentPage');
+        lesbianTotalPagesSpan = document.getElementById('lesbianTotalPages');
 
-    initializeEventListeners();
-    loadLesbianVideos();
+        if (!lesbianVideoGrid || !lesbianLoading) {
+            console.warn('Lesbian page required elements not found — skipping initialization.');
+            return;
+        }
+
+        initializeEventListeners();
+        loadLesbianVideos();
+    } catch (err) {
+        console.error('Lesbian page initialization failed:', err);
+    }
 });
 
 // Event Listeners
 function initializeEventListeners() {
-    lesbianOrderSelect.addEventListener('change', function() {
-        lesbianSearch.order = this.value;
-        lesbianSearch.page = 1;
-        loadLesbianVideos();
-    });
-
-    lesbianThumbsizeSelect.addEventListener('change', function() {
-        lesbianSearch.thumbsize = this.value;
-        loadLesbianVideos();
-    });
-
-    lesbianGayContent.addEventListener('change', function() {
-        lesbianSearch.gay = this.checked ? 1 : 0;
-        lesbianSearch.page = 1;
-        loadLesbianVideos();
-    });
-
-    lesbianPrevPage.addEventListener('click', function() {
-        if (lesbianSearch.page > 1) {
-            lesbianSearch.page--;
-            loadLesbianVideos();
+    try {
+        if (lesbianOrderSelect) {
+            lesbianOrderSelect.addEventListener('change', function() {
+                lesbianSearch.order = this.value;
+                lesbianSearch.page = 1;
+                loadLesbianVideos();
+            });
         }
-    });
 
-    lesbianNextPage.addEventListener('click', function() {
-        if (lesbianSearch.page < lesbianResults.total_pages) {
-            lesbianSearch.page++;
-            loadLesbianVideos();
+        if (lesbianThumbsizeSelect) {
+            lesbianThumbsizeSelect.addEventListener('change', function() {
+                lesbianSearch.thumbsize = this.value;
+                loadLesbianVideos();
+            });
         }
-    });
+
+        if (lesbianGayContent) {
+            lesbianGayContent.addEventListener('change', function() {
+                lesbianSearch.gay = this.checked ? 1 : 0;
+                lesbianSearch.page = 1;
+                loadLesbianVideos();
+            });
+        }
+
+        if (lesbianPrevPage) {
+            lesbianPrevPage.addEventListener('click', function() {
+                if (lesbianSearch.page > 1) {
+                    lesbianSearch.page--;
+                    loadLesbianVideos();
+                }
+            });
+        }
+
+        if (lesbianNextPage) {
+            lesbianNextPage.addEventListener('click', function() {
+                if (lesbianSearch.page < lesbianResults.total_pages) {
+                    lesbianSearch.page++;
+                    loadLesbianVideos();
+                }
+            });
+        }
+    } catch (err) {
+        console.error('Lesbian event listener setup failed:', err);
+    }
 }
 
 // Enhanced API call with retry logic and timeout
@@ -223,8 +246,20 @@ function createLesbianVideoCard(video) {
 // Show video player in modal (shared function)
 async function showVideoDetails(videoId) {
     try {
-        console.log('Loading video details for ID:', videoId);
-        window.location.href = `index.html?video=${videoId}&category=Lesbian`;
+        const params = new URLSearchParams({
+            id: videoId,
+            thumbsize: lesbianSearch.thumbsize,
+            format: 'json'
+        });
+
+        const video = await fetchWithRetry(`${API_BASE_URL}/video/id/?${params}`);
+
+        if (!video || video.length === 0) {
+            showLesbianError('Video not found or has been removed.');
+            return;
+        }
+
+        playVideoInline(video);
     } catch (error) {
         console.error('Video player error:', error);
         showLesbianError('Failed to load video player.');
