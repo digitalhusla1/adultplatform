@@ -1,9 +1,16 @@
-// API Configuration
-const API_BASE_URL = 'https://www.eporner.com/api/v2';
-const DEFAULT_PER_PAGE = 12; // Reduced for faster loading
-const API_TIMEOUT = 10000; // 10 seconds
-const MAX_RETRIES = 3;
-const RETRY_DELAY = 1000; // 1 second
+// API Configuration - shared from script.js
+// const API_BASE_URL = 'https://www.eporner.com/api/v2';
+// const DEFAULT_PER_PAGE = 12;
+// const API_TIMEOUT = 10000;
+// const MAX_RETRIES = 3;
+// const RETRY_DELAY = 1000;
+
+// Use values from script.js for popular page
+const POPULAR_DEFAULT_PER_PAGE = 12;
+const POPULAR_API_TIMEOUT = 10000;
+const POPULAR_MAX_RETRIES = 3;
+const POPULAR_RETRY_DELAY = 1000;
+const API_BASE_URL = 'https://www.eporner.com/api/v2'; // Define for this page
 
 // DOM Elements
 const popularOrderSelect = document.getElementById('popularOrderSelect');
@@ -28,7 +35,7 @@ let popularSearch = {
     order: 'most-popular',
     thumbsize: 'medium',
     gay: 0,
-    per_page: DEFAULT_PER_PAGE
+    per_page: POPULAR_DEFAULT_PER_PAGE
 };
 
 let popularResults = {
@@ -94,14 +101,19 @@ function initializeEventListeners() {
     }
 }
 
-// Enhanced API call with retry logic and timeout
-async function fetchWithRetry(url, options = {}, retries = MAX_RETRIES) {
+// Enhanced API call with retry logic and timeout (using script.js shared function)
+async function fetchWithRetry(url, options = {}, retries = POPULAR_MAX_RETRIES) {
     for (let i = 0; i < retries; i++) {
         try {
             const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), API_TIMEOUT);
+            const timeoutId = setTimeout(() => controller.abort(), POPULAR_API_TIMEOUT);
 
             const response = await fetch(url, {
+                method: 'GET',
+                headers: {
+                    'Accept': 'application/json',
+                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+                },
                 ...options,
                 signal: controller.signal
             });
@@ -109,30 +121,33 @@ async function fetchWithRetry(url, options = {}, retries = MAX_RETRIES) {
             clearTimeout(timeoutId);
 
             if (response.ok) {
-                return await response.json();
+                const data = await response.json();
+                return data;
             } else if (response.status === 429) {
                 // Rate limited, wait longer before retry
-                await new Promise(resolve => setTimeout(resolve, RETRY_DELAY * (i + 1)));
+                console.warn(`Popular API rate limited (429), retrying...`);
+                await new Promise(resolve => setTimeout(resolve, POPULAR_RETRY_DELAY * (i + 1)));
                 continue;
             } else if (response.status >= 500) {
                 // Server error, retry
-                await new Promise(resolve => setTimeout(resolve, RETRY_DELAY * (i + 1)));
+                console.warn(`Popular API server error (${response.status}), retrying...`);
+                await new Promise(resolve => setTimeout(resolve, POPULAR_RETRY_DELAY * (i + 1)));
                 continue;
             } else {
                 throw new Error(`HTTP ${response.status}: ${response.statusText}`);
             }
         } catch (error) {
             if (error.name === 'AbortError') {
-                console.warn(`Request timeout (attempt ${i + 1}/${retries})`);
+                console.warn(`Popular request timeout (attempt ${i + 1}/${retries})`);
             } else {
-                console.warn(`Request failed (attempt ${i + 1}/${retries}):`, error.message);
+                console.warn(`Popular request failed (attempt ${i + 1}/${retries}):`, error.message);
             }
 
             if (i === retries - 1) {
                 throw error;
             }
 
-            await new Promise(resolve => setTimeout(resolve, RETRY_DELAY * (i + 1)));
+            await new Promise(resolve => setTimeout(resolve, POPULAR_RETRY_DELAY * (i + 1)));
         }
     }
 }
@@ -169,6 +184,11 @@ async function loadPopularVideos() {
 
     } catch (error) {
         console.error('Popular videos error:', error);
+        console.error('Error details:', {
+            message: error.message,
+            name: error.name,
+            stack: error.stack
+        });
         showPopularError(`Failed to fetch popular videos: ${error.message}. Please try again later.`);
     }
 }

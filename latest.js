@@ -1,9 +1,16 @@
-// API Configuration
-const API_BASE_URL = 'https://www.eporner.com/api/v2';
-const DEFAULT_PER_PAGE = 12; // Reduced for faster loading
-const API_TIMEOUT = 10000; // 10 seconds
-const MAX_RETRIES = 3;
-const RETRY_DELAY = 1000; // 1 second
+// API Configuration - shared from script.js
+// const API_BASE_URL = 'https://www.eporner.com/api/v2';
+// const DEFAULT_PER_PAGE = 12;
+// const API_TIMEOUT = 10000;
+// const MAX_RETRIES = 3;
+// const RETRY_DELAY = 1000;
+
+// Use values from script.js for latest page
+const LATEST_DEFAULT_PER_PAGE = 12;
+const LATEST_API_TIMEOUT = 10000;
+const LATEST_MAX_RETRIES = 3;
+const LATEST_RETRY_DELAY = 1000;
+const API_BASE_URL = 'https://www.eporner.com/api/v2'; // Define for this page
 
 // DOM Elements
 const latestThumbsizeSelect = document.getElementById('latestThumbsizeSelect');
@@ -27,7 +34,7 @@ let latestSearch = {
     order: 'latest',
     thumbsize: 'medium',
     gay: 0,
-    per_page: DEFAULT_PER_PAGE
+    per_page: LATEST_DEFAULT_PER_PAGE
 };
 
 let latestResults = {
@@ -108,7 +115,13 @@ async function loadLatestVideos() {
             format: 'json'
         });
 
-        const response = await fetch(`${API_BASE_URL}/video/search/?${params}`);
+        const response = await fetch(`${API_BASE_URL}/video/search/?${params}`, {
+            method: 'GET',
+            headers: {
+                'Accept': 'application/json',
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+            }
+        });
 
         if (!response.ok) {
             throw new Error(`API Error: ${response.status} ${response.statusText}`);
@@ -206,7 +219,13 @@ async function showVideoDetails(videoId) {
             format: 'json'
         });
 
-        const response = await fetch(`${API_BASE_URL}/video/id/?${params}`);
+        const response = await fetch(`${API_BASE_URL}/video/id/?${params}`, {
+            method: 'GET',
+            headers: {
+                'Accept': 'application/json',
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+            }
+        });
 
         if (!response.ok) {
             throw new Error(`API Error: ${response.status} ${response.statusText}`);
