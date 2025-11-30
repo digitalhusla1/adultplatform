@@ -1080,13 +1080,20 @@ function initPage() {
         const path = window.location.pathname.toLowerCase();
         const href = window.location.href.toLowerCase();
 
+        console.log('Page detection - path:', path, 'href:', href);
+
         // Initialize page-specific functionality
         if (path.includes('index.html') || path === '/' || path.endsWith('/')) {
+            console.log('Detected: Home page');
             initHomePage();
         } else if (path.includes('search') || href.includes('search?')) {
+            console.log('Detected: Search page');
             initSearchPage();
         } else if (path.includes('video')) {
+            console.log('Detected: Video page');
             initVideoPage();
+        } else {
+            console.log('No page-specific init matched');
         }
 
         console.log('Page initialization complete');
