@@ -19,8 +19,8 @@ const CONFIG = {
     REMOVED_CACHE_KEY: 'eporner_removed_ids',       // LocalStorage key for removed videos cache
     REMOVED_CACHE_EXPIRY: 24 * 60 * 60 * 1000,      // 24 hours - how often to refresh removed list
     AGE_VERIFIED_KEY: 'age_verified',               // LocalStorage key for age verification
-    AGE_VERIFIED_EXPIRY: 24 * 60 * 60 * 1000,       // 24 hours - how long verification lasts
-    VIDEOS_PER_PAGE: 20,                            // Number of videos per page (1-1000)
+    AGE_VERIFIED_EXPIRY: 30 * 24 * 60 * 60 * 1000,  // 30 days - how long verification lasts (was 24 hours)
+    VIDEOS_PER_PAGE: 24,                            // Number of videos per page (1-1000) - increased for better UX
 };
 
 // ========== API FUNCTIONS ==========
@@ -938,6 +938,7 @@ function initForms() {
 function initPage() {
     try {
         // Initialize on all pages
+        initMenuToggle();
         initAgeVerification();
         initSearchForm();
         initForms();
@@ -975,12 +976,48 @@ if (document.readyState === 'loading') {
 // ========== UTILITY FUNCTIONS ==========
 
 /**
+ * Initialize hamburger menu toggle for mobile
+ */
+function initMenuToggle() {
+    const menuToggle = document.getElementById('menuToggle');
+    const mainNav = document.getElementById('mainNav');
+
+    if (!menuToggle || !mainNav) return;
+
+    // Toggle menu on button click
+    menuToggle.addEventListener('click', () => {
+        menuToggle.classList.toggle('active');
+        mainNav.classList.toggle('hidden');
+        mainNav.classList.toggle('visible');
+    });
+
+    // Close menu when a link is clicked
+    const navLinks = mainNav.querySelectorAll('a');
+    navLinks.forEach(link => {
+        link.addEventListener('click', () => {
+            menuToggle.classList.remove('active');
+            mainNav.classList.add('hidden');
+            mainNav.classList.remove('visible');
+        });
+    });
+
+    // Close menu when clicking outside
+    document.addEventListener('click', (e) => {
+        if (!e.target.closest('header')) {
+            menuToggle.classList.remove('active');
+            mainNav.classList.add('hidden');
+            mainNav.classList.remove('visible');
+        }
+    });
+}
+
+/**
  * Debounce function - delays function call until user stops triggering it
  * @param {Function} func - Function to debounce
  * @param {number} wait - Milliseconds to wait
  * @returns {Function} - Debounced function
  * 
- * USAGE: const debouncedSearch = debounce(searchVideos, 300);
+   * USAGE: const debouncedSearch = debounce(searchVideos, 300);
  * Useful for search input to avoid too many API calls
  */
 function debounce(func, wait) {
@@ -1144,91 +1181,7 @@ async function getRemovedIds() {
     }
 }
 
-// ========== AGE VERIFICATION ==========
-
-/**
- * Check if user has verified age
- * @returns {boolean}
- */
-function isAgeVerified() {
-    const verified = localStorage.getItem(CONFIG.AGE_VERIFIED_KEY);
-    const verifiedTime = localStorage.getItem(CONFIG.AGE_VERIFIED_KEY + '_time');
-
-    if (verified && verifiedTime) {
-        const elapsed = Date.now() - parseInt(verifiedTime);
-        if (elapsed < CONFIG.AGE_VERIFIED_EXPIRY) {
-            return true;
-        } else {
-            // Clear expired verification
-            localStorage.removeItem(CONFIG.AGE_VERIFIED_KEY);
-            localStorage.removeItem(CONFIG.AGE_VERIFIED_KEY + '_time');
-        }
-    }
-
-    return false;
-}
-
-/**
- * Set age verification
- */
-function setAgeVerified() {
-    localStorage.setItem(CONFIG.AGE_VERIFIED_KEY, 'true');
-    localStorage.setItem(CONFIG.AGE_VERIFIED_KEY + '_time', Date.now().toString());
-}
-
-/**
- * Show age verification modal
- */
-function showAgeModal() {
-    const modal = document.getElementById('ageModal');
-    if (modal) {
-        modal.classList.add('show');
-    }
-}
-
-/**
- * Hide age verification modal
- */
-function hideAgeModal() {
-    const modal = document.getElementById('ageModal');
-    if (modal) {
-        modal.classList.remove('show');
-    }
-}
-
-/**
- * Initialize age verification on page load
- */
-function initAgeVerification() {
-    const ageYesBtn = document.getElementById('ageYes');
-    const ageNoBtn = document.getElementById('ageNo');
-
-    if (ageYesBtn) {
-        ageYesBtn.addEventListener('click', () => {
-            setAgeVerified();
-            hideAgeModal();
-        });
-    }
-
-    if (ageNoBtn) {
-        ageNoBtn.addEventListener('click', () => {
-            window.location.href = 'https://www.google.com';
-        });
-    }
-
-    // Show modal if not verified
-    if (!isAgeVerified()) {
-        showAgeModal();
-    }
-}
-
-// ========== VIDEO RENDERING ==========
-
-/**
- * Create video card HTML
- * @param {Object} video - Video object from API
- * @returns {string} - HTML string
- */
+// Video rendering functions moved earlier in file */
 function createVideoCard(video) {
     const views = video.views.toLocaleString();
     const title = escapeHtml(video.title);

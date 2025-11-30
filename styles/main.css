@@ -200,6 +200,24 @@ nav a.active {
     background-color: var(--accent-hover);
 }
 
+/* ========== BUTTONS (MOBILE-FRIENDLY) ========== */
+button {
+    min-height: 44px;
+    min-width: 44px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+button:active {
+    transform: scale(0.98);
+}
+
+button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
 /* ========== MAIN CONTENT ========== */
 main {
     max-width: 1200px;
@@ -382,13 +400,18 @@ section {
 }
 
 .btn-pagination {
-    padding: 10px 20px;
+    padding: 12px 20px;
+    min-height: 44px;
+    min-width: 44px;
     background-color: var(--secondary-bg);
     color: var(--primary-text);
     border: 1px solid var(--border-color);
     border-radius: var(--radius);
     cursor: pointer;
     transition: all var(--transition);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .btn-pagination:hover {
@@ -873,7 +896,154 @@ footer {
     transform: scale(1.05);
 }
 
+/* ========== HAMBURGER MENU ========== */
+.menu-toggle {
+    display: none;
+    flex-direction: column;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 8px;
+    gap: 5px;
+    z-index: 101;
+}
+
+.menu-toggle span {
+    width: 24px;
+    height: 3px;
+    background-color: var(--accent-color);
+    border-radius: 2px;
+    transition: all var(--transition);
+}
+
+.menu-toggle.active span:nth-child(1) {
+    transform: rotate(45deg) translate(8px, 8px);
+}
+
+.menu-toggle.active span:nth-child(2) {
+    opacity: 0;
+}
+
+.menu-toggle.active span:nth-child(3) {
+    transform: rotate(-45deg) translate(8px, -8px);
+}
+
+nav {
+    width: 100%;
+    max-height: 500px;
+    overflow-y: auto;
+    transition: all var(--transition);
+}
+
+nav.hidden {
+    display: none;
+    max-height: 0;
+    overflow: hidden;
+}
+
+nav ul {
+    flex-direction: column;
+    gap: 0;
+    width: 100%;
+}
+
+nav li {
+    border-bottom: 1px solid var(--border-color);
+}
+
+nav a {
+    display: block;
+    padding: 12px 15px;
+    border-radius: 0;
+    width: 100%;
+    box-sizing: border-box;
+}
+
 /* ========== RESPONSIVE DESIGN ========== */
+/* Mobile (< 768px) */
+@media (max-width: 767px) {
+    .header-container {
+        flex-direction: row;
+        align-items: center;
+        padding: 0 var(--spacing);
+        gap: 0;
+    }
+
+    .logo {
+        flex: 1;
+        text-align: left;
+        margin: 0;
+    }
+
+    .logo h1 {
+        font-size: 1.25rem;
+    }
+
+    .menu-toggle {
+        display: flex;
+        order: 2;
+    }
+
+    nav {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        background-color: var(--secondary-bg);
+        border-top: 2px solid var(--accent-color);
+        width: 100vw;
+        margin-left: calc(-1 * (100vw - 100%) / 2);
+    }
+
+    nav.hidden {
+        display: none;
+    }
+
+    nav.visible {
+        display: block;
+    }
+
+    nav ul {
+        flex-direction: column;
+        width: 100%;
+    }
+
+    .search-bar {
+        width: 100%;
+        order: 3;
+        margin-top: 10px;
+    }
+
+    .video-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .categories-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .modal-buttons {
+        flex-direction: column;
+    }
+
+    .modal-buttons button {
+        width: 100%;
+        min-height: 44px;
+    }
+
+    h1 { font-size: 1.5rem; }
+    h2 { font-size: 1.25rem; }
+    h3 { font-size: 1.1rem; }
+
+    main {
+        padding: 15px;
+    }
+
+    .content-page {
+        padding: 20px;
+    }
+}
+
 /* Tablets (768px and up) */
 @media (min-width: 768px) {
     .header-container {
