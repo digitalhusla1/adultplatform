@@ -1,0 +1,59 @@
+# Netlify Configuration for HDpornlove.com
+
+[build]
+# No build command needed for static site
+command = "echo 'Static site - no build required'"
+publish = "."
+
+[build.environment]
+# Environment variables if needed
+
+# URL redirects for dynamic pages
+[[redirects]]
+from = "/video/:id"
+to = "/video.html?id=:id"
+status = 200
+
+[[redirects]]
+from = "/search/:query"
+to = "/search.html?query=:query"
+status = 200
+
+[[redirects]]
+from = "/*"
+to = "/index.html"
+status = 200
+
+# Form handling
+[functions]
+directory = "netlify/functions"
+
+# Cache settings
+[[headers]]
+for = "/*"
+[headers.values]
+Cache-Control = "public, max-age=3600"
+
+[[headers]]
+for = "*.html"
+[headers.values]
+Cache-Control = "public, max-age=600"
+
+[[headers]]
+for = "/styles/*"
+[headers.values]
+Cache-Control = "public, max-age=31536000"
+
+[[headers]]
+for = "/scripts/*"
+[headers.values]
+Cache-Control = "public, max-age=31536000"
+
+# Security headers
+[[headers]]
+for = "/*"
+[headers.values]
+X-Frame-Options = "SAMEORIGIN"
+X-Content-Type-Options = "nosniff"
+X-XSS-Protection = "1; mode=block"
+Referrer-Policy = "strict-origin-when-cross-origin"
