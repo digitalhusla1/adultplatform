@@ -685,8 +685,11 @@ async function initHomePage() {
  * Initialize search results page
  */
 async function initSearchPage() {
+    console.log('initSearchPage called!');
+    
     // Get search query from URL
     const query = getUrlParam('query');
+    console.log('Query from URL:', query);
     
     // Redirect if no query
     if (!query) {
@@ -696,12 +699,16 @@ async function initSearchPage() {
     }
 
     const container = document.getElementById('searchVideos');
+    console.log('Search container found:', !!container);
+    
     if (!container) {
         console.log('Not on search page');
         return;
     }
 
     try {
+        console.log('Starting search for:', query);
+        
         // Update page title
         const title = document.getElementById('searchTitle');
         if (title) {
@@ -712,7 +719,9 @@ async function initSearchPage() {
         container.innerHTML = '<div class="loading">Searching for videos...</div>';
 
         // Fetch search results
+        console.log('Calling searchVideos...');
         const data = await searchVideos(query, 1);
+        console.log('Search results received:', data);
         
         // Update results info
         const resultsInfo = document.getElementById('resultsInfo');
@@ -727,14 +736,15 @@ async function initSearchPage() {
         }
 
         // Render videos
+        console.log('Rendering videos...');
         renderVideos(data.videos, 'searchVideos');
         setupPagination(data, query);
 
         console.log(`Search page initialized for query: ${query}`);
 
     } catch (error) {
-        container.innerHTML = '<div class="no-results"><p>⚠️ Error loading search results. Please try again.</p></div>';
         console.error('Search page error:', error);
+        container.innerHTML = '<div class="no-results"><p>⚠️ Error loading search results. ' + error.message + '</p></div>';
     }
 }
 
