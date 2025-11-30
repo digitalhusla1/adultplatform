@@ -23,6 +23,13 @@ const CONFIG = {
     VIDEOS_PER_PAGE: 24,                            // Number of videos per page (1-1000) - increased for better UX
 };
 
+// ========== PAGE STATE ==========
+/* Track pagination state for each section */
+let currentPageSearch = 1;
+let currentPageMostViewed = 1;
+let currentPageTopRated = 1;
+let currentPageNewest = 1;
+
 // ========== API FUNCTIONS ==========
 /* These functions interact with the Eporner API v2 */
 
@@ -89,6 +96,132 @@ async function searchVideos(query = 'all', page = 1) {
             throw new Error('API request timeout. Please try again.');
         }
         console.error('searchVideos Error:', error.message);
+        throw error;
+    }
+}
+
+/**
+ * Fetch most viewed videos this week
+ * @param {number} page - Page number (starts at 1)
+ * @returns {Promise<Object>} - API response with videos array
+ */
+async function getMostViewedVideos(page = 1) {
+    try {
+        const url = new URL(`${CONFIG.API_BASE}video/search/`);
+        url.searchParams.append('query', 'all');
+        url.searchParams.append('page', page);
+        url.searchParams.append('per_page', CONFIG.VIDEOS_PER_PAGE);
+        url.searchParams.append('thumbsize', CONFIG.THUMB_SIZE);
+        url.searchParams.append('order', 'latest-views'); // Most viewed
+        url.searchParams.append('format', 'json');
+
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 10000);
+
+        const response = await fetch(url.toString(), { signal: controller.signal });
+        clearTimeout(timeout);
+
+        if (!response.ok) {
+            throw new Error(`API HTTP Error ${response.status}`);
+        }
+
+        const data = await response.json();
+        if (!data.videos || !Array.isArray(data.videos)) {
+            return { ...data, videos: [] };
+        }
+
+        const removedIds = await getRemovedIds();
+        data.videos = data.videos.filter(v => v && v.id && !removedIds.includes(v.id));
+
+        console.log(`Most viewed page ${page}: ${data.videos.length} videos found`);
+        return data;
+
+    } catch (error) {
+        console.error('getMostViewedVideos Error:', error.message);
+        throw error;
+    }
+}
+
+/**
+ * Fetch top-rated videos this month
+ * @param {number} page - Page number (starts at 1)
+ * @returns {Promise<Object>} - API response with videos array
+ */
+async function getTopRatedVideos(page = 1) {
+    try {
+        const url = new URL(`${CONFIG.API_BASE}video/search/`);
+        url.searchParams.append('query', 'all');
+        url.searchParams.append('page', page);
+        url.searchParams.append('per_page', CONFIG.VIDEOS_PER_PAGE);
+        url.searchParams.append('thumbsize', CONFIG.THUMB_SIZE);
+        url.searchParams.append('order', 'top-rated'); // Top rated
+        url.searchParams.append('format', 'json');
+
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 10000);
+
+        const response = await fetch(url.toString(), { signal: controller.signal });
+        clearTimeout(timeout);
+
+        if (!response.ok) {
+            throw new Error(`API HTTP Error ${response.status}`);
+        }
+
+        const data = await response.json();
+        if (!data.videos || !Array.isArray(data.videos)) {
+            return { ...data, videos: [] };
+        }
+
+        const removedIds = await getRemovedIds();
+        data.videos = data.videos.filter(v => v && v.id && !removedIds.includes(v.id));
+
+        console.log(`Top rated page ${page}: ${data.videos.length} videos found`);
+        return data;
+
+    } catch (error) {
+        console.error('getTopRatedVideos Error:', error.message);
+        throw error;
+    }
+}
+
+/**
+ * Fetch newest videos
+ * @param {number} page - Page number (starts at 1)
+ * @returns {Promise<Object>} - API response with videos array
+ */
+async function getNewestVideos(page = 1) {
+    try {
+        const url = new URL(`${CONFIG.API_BASE}video/search/`);
+        url.searchParams.append('query', 'all');
+        url.searchParams.append('page', page);
+        url.searchParams.append('per_page', CONFIG.VIDEOS_PER_PAGE);
+        url.searchParams.append('thumbsize', CONFIG.THUMB_SIZE);
+        url.searchParams.append('order', 'newest'); // Newest first
+        url.searchParams.append('format', 'json');
+
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 10000);
+
+        const response = await fetch(url.toString(), { signal: controller.signal });
+        clearTimeout(timeout);
+
+        if (!response.ok) {
+            throw new Error(`API HTTP Error ${response.status}`);
+        }
+
+        const data = await response.json();
+        if (!data.videos || !Array.isArray(data.videos)) {
+            return { ...data, videos: [] };
+        }
+
+        const removedIds = await getRemovedIds();
+        data.videos = data.videos.filter(v => v && v.id && !removedIds.includes(v.id));
+
+        console.log(`Newest videos page ${page}: ${data.videos.length} videos found`);
+        return data;
+
+    } catch (error) {
+        console.error('getNewestVideos Error:', error.message);
         throw error;
     }
 }
@@ -1301,6 +1434,158 @@ async function initHomePage() {
     } catch (error) {
         container.innerHTML = '<div class="no-results"><p>Error loading videos. Please try again.</p></div>';
         console.error('Home page error:', error);
+    }
+
+    // Load trending sections
+    await loadTrendingMostViewed(1);
+    await loadTrendingTopRated(1);
+    await loadTrendingNewest(1);
+}
+
+/**
+ * Load and render most viewed videos
+ * @param {number} page - Page number to load
+ */
+async function loadTrendingMostViewed(page = 1) {
+    const container = document.getElementById('mostViewedVideos');
+    if (!container) return;
+
+    try {
+        currentPageMostViewed = page;
+        const data = await getMostViewedVideos(page);
+        
+        renderVideos(data.videos, 'mostViewedVideos');
+
+        // Update pagination info
+        const pageInfo = document.getElementById('pageViewedInfo');
+        if (pageInfo) {
+            pageInfo.textContent = `Page ${page}`;
+        }
+
+        // Setup pagination buttons
+        const prevBtn = document.getElementById('prevViewedBtn');
+        const nextBtn = document.getElementById('nextViewedBtn');
+
+        if (prevBtn) {
+            prevBtn.onclick = (e) => {
+                e.preventDefault();
+                if (currentPageMostViewed > 1) {
+                    loadTrendingMostViewed(currentPageMostViewed - 1);
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                }
+            };
+            prevBtn.disabled = page === 1;
+        }
+
+        if (nextBtn) {
+            nextBtn.onclick = (e) => {
+                e.preventDefault();
+                loadTrendingMostViewed(currentPageMostViewed + 1);
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            };
+            nextBtn.disabled = !data.videos || data.videos.length < CONFIG.VIDEOS_PER_PAGE;
+        }
+    } catch (error) {
+        container.innerHTML = '<div class="no-results"><p>Error loading most viewed videos. Please try again.</p></div>';
+        console.error('Most viewed error:', error);
+    }
+}
+
+/**
+ * Load and render top rated videos
+ * @param {number} page - Page number to load
+ */
+async function loadTrendingTopRated(page = 1) {
+    const container = document.getElementById('topRatedVideos');
+    if (!container) return;
+
+    try {
+        currentPageTopRated = page;
+        const data = await getTopRatedVideos(page);
+        
+        renderVideos(data.videos, 'topRatedVideos');
+
+        // Update pagination info
+        const pageInfo = document.getElementById('pageRatedInfo');
+        if (pageInfo) {
+            pageInfo.textContent = `Page ${page}`;
+        }
+
+        // Setup pagination buttons
+        const prevBtn = document.getElementById('prevRatedBtn');
+        const nextBtn = document.getElementById('nextRatedBtn');
+
+        if (prevBtn) {
+            prevBtn.onclick = (e) => {
+                e.preventDefault();
+                if (currentPageTopRated > 1) {
+                    loadTrendingTopRated(currentPageTopRated - 1);
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                }
+            };
+            prevBtn.disabled = page === 1;
+        }
+
+        if (nextBtn) {
+            nextBtn.onclick = (e) => {
+                e.preventDefault();
+                loadTrendingTopRated(currentPageTopRated + 1);
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            };
+            nextBtn.disabled = !data.videos || data.videos.length < CONFIG.VIDEOS_PER_PAGE;
+        }
+    } catch (error) {
+        container.innerHTML = '<div class="no-results"><p>Error loading top rated videos. Please try again.</p></div>';
+        console.error('Top rated error:', error);
+    }
+}
+
+/**
+ * Load and render newest videos
+ * @param {number} page - Page number to load
+ */
+async function loadTrendingNewest(page = 1) {
+    const container = document.getElementById('newestVideos');
+    if (!container) return;
+
+    try {
+        currentPageNewest = page;
+        const data = await getNewestVideos(page);
+        
+        renderVideos(data.videos, 'newestVideos');
+
+        // Update pagination info
+        const pageInfo = document.getElementById('pageNewestInfo');
+        if (pageInfo) {
+            pageInfo.textContent = `Page ${page}`;
+        }
+
+        // Setup pagination buttons
+        const prevBtn = document.getElementById('prevNewestBtn');
+        const nextBtn = document.getElementById('nextNewestBtn');
+
+        if (prevBtn) {
+            prevBtn.onclick = (e) => {
+                e.preventDefault();
+                if (currentPageNewest > 1) {
+                    loadTrendingNewest(currentPageNewest - 1);
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                }
+            };
+            prevBtn.disabled = page === 1;
+        }
+
+        if (nextBtn) {
+            nextBtn.onclick = (e) => {
+                e.preventDefault();
+                loadTrendingNewest(currentPageNewest + 1);
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            };
+            nextBtn.disabled = !data.videos || data.videos.length < CONFIG.VIDEOS_PER_PAGE;
+        }
+    } catch (error) {
+        container.innerHTML = '<div class="no-results"><p>Error loading newest videos. Please try again.</p></div>';
+        console.error('Newest error:', error);
     }
 }
 
