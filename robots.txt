@@ -1,4 +1,20 @@
+# robots.txt for HDpornlove.com
 User-agent: *
 Allow: /
+Allow: /index.html
+Allow: /about.html
+Allow: /categories.html
+Allow: /search.html
+Allow: /video.html
+Allow: /styles/
+Allow: /scripts/
+Allow: /assets/
 
+# Disallow sensitive pages
+Disallow: /contact.html (allow form submissions only)
+
+# Crawl delay (optional, remove if not needed)
+Crawl-delay: 1
+
+# Sitemap
 Sitemap: https://hdpornlove.com/sitemap.xml

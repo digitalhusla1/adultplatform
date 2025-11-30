@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Contact HDpornlove.com - Report issues, suggest content, or inquire about partnerships.">
-    <meta name="keywords" content="contact hdpornlove, report content, contact form, customer support">
-    <title>Contact Us - HDpornlove.com</title>
+    <meta name="description" content="Watch HD adult video on HDpornlove.com - Free streaming 24/7, 18+ only.">
+    <meta name="keywords" content="watch porn, video player, stream adult video, hd porn">
+    <title>Video - HDpornlove.com</title>
     <link rel="stylesheet" href="styles/main.css">
 </head>
 <body>
@@ -20,7 +20,7 @@
                     <li><a href="index.html">Home</a></li>
                     <li><a href="about.html">About</a></li>
                     <li><a href="categories.html">Categories</a></li>
-                    <li><a href="contact.html" class="active">Contact</a></li>
+                    <li><a href="contact.html">Contact</a></li>
                 </ul>
             </nav>
             <div class="search-bar">
@@ -33,47 +33,38 @@
     </header>
 
     <main>
-        <section class="content-page">
-            <h2>Contact Us</h2>
-            <p>Have a question or issue? We'd love to hear from you.</p>
+        <section class="video-detail">
+            <div id="videoContainer" class="loading">Loading video...</div>
 
-            <form id="contactForm" name="contact" method="POST" netlify>
-                <fieldset>
-                    <label for="name">Name *</label>
-                    <input type="text" id="name" name="name" required>
+            <div id="videoInfo" style="display: none;">
+                <h2 id="videoTitle"></h2>
+                
+                <div class="video-meta">
+                    <span id="videoViews" class="meta-item">Views: <strong></strong></span>
+                    <span id="videoRating" class="meta-item">Rating: <strong></strong>/5</span>
+                    <span id="videoDuration" class="meta-item">Duration: <strong></strong></span>
+                </div>
 
-                    <label for="email">Email *</label>
-                    <input type="email" id="email" name="email" required>
+                <div class="video-actions">
+                    <button id="shareBtn" class="btn-secondary">Share</button>
+                    <button id="reportBtn" class="btn-secondary">Report</button>
+                </div>
 
-                    <label for="subject">Subject *</label>
-                    <select id="subject" name="subject" required>
-                        <option value="">Select a subject</option>
-                        <option value="report">Report Illegal Content</option>
-                        <option value="dmca">DMCA Takedown</option>
-                        <option value="suggest">Suggest Content</option>
-                        <option value="bug">Report Technical Issue</option>
-                        <option value="partnership">Partnership Inquiry</option>
-                        <option value="other">Other</option>
-                    </select>
-
-                    <label for="message">Message *</label>
-                    <textarea id="message" name="message" rows="8" required></textarea>
-
-                    <label>
-                        <input type="checkbox" name="consent" required>
-                        I confirm I am 18+ and consent to my information being used to respond to this inquiry
-                    </label>
-
-                    <button type="submit" class="btn-primary">Send Message</button>
-                </fieldset>
-            </form>
-
-            <div class="contact-info">
-                <h3>Other Ways to Reach Us</h3>
-                <p><strong>Email:</strong> support@hdpornlove.com</p>
-                <p><strong>DMCA Notices:</strong> dmca@hdpornlove.com</p>
-                <p>We typically respond within 24-48 hours during business days.</p>
+                <div id="videoDescription">
+                    <h3>Tags</h3>
+                    <div id="videoTags" class="tags"></div>
+                </div>
             </div>
+
+            <div id="noVideo" class="no-results" style="display: none;">
+                <p>Video not found or has been removed.</p>
+                <p><a href="index.html" class="btn-primary">Back to Home</a></p>
+            </div>
+
+            <section id="relatedSection" style="display: none;">
+                <h3>Related Videos</h3>
+                <div id="relatedVideos" class="video-grid"></div>
+            </section>
         </section>
     </main>
 

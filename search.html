@@ -1,31 +1,20 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <!-- META TAGS FOR SEO & COMPATIBILITY -->
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <!-- Customize description for search engines and social sharing -->
-    <meta name="description" content="HDpornlove.com - Free HD adult videos, porn streaming 24/7. 18+ only, models verified. Browse thousands of hot videos now.">
-    <!-- Keywords for SEO - add relevant adult content keywords here -->
-    <meta name="keywords" content="free hd porn, adult videos, porn streaming, 18+, xxx videos 2025, porno">
-    <meta name="author" content="HDpornlove.com">
-    <meta name="robots" content="index, follow">
-    <!-- Page title appears in browser tab and search results -->
-    <title>HDpornlove.com - Free HD Adult Videos & Porn Streaming | 18+ Only</title>
-    <!-- Link to main stylesheet - all colors and layouts controlled here -->
+    <meta name="description" content="Search results for adult videos on HDpornlove.com. HD porn streaming from Eporner.">
+    <meta name="keywords" content="porn search, video search, adult search results">
+    <title>Search Results - HDpornlove.com</title>
     <link rel="stylesheet" href="styles/main.css">
 </head>
 <body>
-    <!-- HEADER NAVIGATION - APPEARS ON ALL PAGES -->
     <header>
         <div class="header-container">
-            <!-- LOGO & SITE NAME -->
             <div class="logo">
                 <h1><a href="index.html">HDpornlove</a></h1>
                 <span class="tagline">Free HD Adult Videos</span>
             </div>
-            <!-- MAIN NAVIGATION MENU -->
-            <!-- Edit links here to add/remove menu items -->
             <nav>
                 <ul>
                     <li><a href="index.html">Home</a></li>
@@ -34,8 +23,6 @@
                     <li><a href="contact.html">Contact</a></li>
                 </ul>
             </nav>
-            <!-- SEARCH BAR - searches videos using Eporner API -->
-            <!-- Form submission handled by main.js initSearchForm() function -->
             <div class="search-bar">
                 <form id="searchForm">
                     <input type="text" id="searchInput" placeholder="Search videos..." autocomplete="off">
@@ -45,44 +32,25 @@
         </div>
     </header>
 
-    <!-- MAIN CONTENT AREA -->
     <main>
-        <!-- HERO SECTION - Welcome message -->
-        <section class="hero">
-            <h2>Welcome to HDpornlove.com</h2>
-            <p>Thousands of HD adult videos at your fingertips</p>
-            <p class="disclaimer">⚠️ 18+ Only - All models verified aged 18+</p>
-        </section>
+        <section class="search-results">
+            <h2 id="searchTitle">Search Results</h2>
+            <div id="resultsInfo" class="results-info"></div>
 
-        <section class="featured-section">
-            <h2>Trending This Week</h2>
-            <div id="featuredVideos" class="video-grid">
-                <div class="loading">Loading videos...</div>
+            <div id="searchVideos" class="video-grid">
+                <div class="loading">Loading search results...</div>
             </div>
+
             <div class="pagination">
                 <button id="prevBtn" class="btn-pagination" style="display: none;">← Previous</button>
                 <span id="pageInfo"></span>
                 <button id="nextBtn" class="btn-pagination" style="display: none;">Next →</button>
             </div>
-        </section>
 
-        <section class="cta-section">
-            <h3>Browse by Category</h3>
-            <p><a href="categories.html" class="btn-primary">Browse Categories</a></p>
-        </section>
-
-        <section class="newsletter-section">
-            <h3>Get Weekly Updates (Optional)</h3>
-            <p>Subscribe for new video recommendations</p>
-            <form id="newsletterForm" name="newsletter" method="POST" netlify>
-                <input type="email" name="email" placeholder="your@email.com" required>
-                <label>
-                    <input type="checkbox" name="consent" required>
-                    I confirm I am 18+ and agree to receive updates
-                </label>
-                <button type="submit" class="btn-primary">Subscribe</button>
-            </form>
-            <p class="gdpr-note">We respect your privacy. No spam, unsubscribe anytime.</p>
+            <div id="noResults" class="no-results" style="display: none;">
+                <p>No videos found for your search. Try different keywords.</p>
+                <p><a href="categories.html" class="btn-primary">Browse Categories</a></p>
+            </div>
         </section>
     </main>
 
