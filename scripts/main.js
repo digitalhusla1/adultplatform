@@ -1090,7 +1090,17 @@ function initPage() {
         const path = window.location.pathname.toLowerCase();
         const href = window.location.href.toLowerCase();
 
-        console.log('Page detection - path:', path, 'href:', href);
+        console.log('=== DETAILED PAGE DETECTION ===');
+        console.log('pathname:', window.location.pathname);
+        console.log('pathname.toLowerCase():', path);
+        console.log('href:', window.location.href);
+        console.log('href.toLowerCase():', href);
+        console.log('path.includes("search"):', path.includes('search'));
+        console.log('href.includes("search?"):', href.includes('search?'));
+        console.log('path.includes("index.html"):', path.includes('index.html'));
+        console.log('path === "/":', path === '/');
+        console.log('path.endsWith("/"):', path.endsWith('/'));
+        console.log('path.includes("video"):', path.includes('video'));
 
         // Initialize page-specific functionality
         if (path.includes('index.html') || path === '/' || path.endsWith('/')) {
