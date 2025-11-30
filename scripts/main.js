@@ -1078,13 +1078,14 @@ function initPage() {
 
         // Get current page path
         const path = window.location.pathname.toLowerCase();
+        const href = window.location.href.toLowerCase();
 
         // Initialize page-specific functionality
         if (path.includes('index.html') || path === '/' || path.endsWith('/')) {
             initHomePage();
-        } else if (path.includes('search.html')) {
+        } else if (path.includes('search') || href.includes('search?')) {
             initSearchPage();
-        } else if (path.includes('video.html')) {
+        } else if (path.includes('video')) {
             initVideoPage();
         }
 
