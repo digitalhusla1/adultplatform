@@ -5,6 +5,9 @@
 command = "echo 'Static site - no build required'"
 publish = "."
 
+# Cache buster - increment when updating JavaScript
+# Version: 2
+
 [build.environment]
 # Environment variables if needed
 
