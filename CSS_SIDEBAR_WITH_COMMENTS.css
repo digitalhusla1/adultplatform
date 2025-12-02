@@ -1,0 +1,200 @@
+/* ============================================================
+   STICKY SIDEBAR CSS - COMPLETE ADDITION
+   ============================================================
+   
+   LOCATION IN FILE: styles/main.css
+   INSERT BEFORE: /* ========== HEADER ========== */
+   
+   This CSS creates a responsive 2-column layout with:
+   - Main content area (flexible width)
+   - Right sidebar (300px fixed width)
+   - Sticky positioning (ads stay visible while scrolling)
+   - Mobile-first responsiveness (sidebar hidden < 800px)
+   
+   ============================================================ */
+
+/* ========== MAIN LAYOUT WITH SIDEBAR ========== */
+/* Two-column layout: main content + right sidebar */
+
+.main-wrapper {
+    display: flex;
+    gap: 20px;
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+/* Explanation:
+   - display: flex → Creates flexible container
+   - gap: 20px → Space between main content and sidebar
+   - max-width: 1400px → Container doesn't get too wide
+   - margin: 0 auto → Centers the container
+   - padding: 20px → Outer spacing around container
+*/
+
+.main-content {
+    flex: 1;
+    min-width: 0; /* Prevents flex items from overflowing */
+}
+
+/* Explanation:
+   - flex: 1 → Takes all available space
+   - min-width: 0 → Prevents flex child overflow issues
+   - This is required for proper text wrapping in flex containers
+*/
+
+.sidebar {
+    width: 300px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    position: sticky;
+    top: 20px;
+    height: fit-content;
+}
+
+/* Explanation:
+   - width: 300px → Fixed sidebar width (no responsive changes)
+   - display: flex → Flexbox for stacking ads
+   - flex-direction: column → Stack ads vertically
+   - gap: 15px → Space between ad containers
+   - position: sticky → Sticks while scrolling
+   - top: 20px → 20px gap from top when sticky
+   - height: fit-content → Only takes space it needs
+*/
+
+.ad-container {
+    background-color: var(--secondary-bg);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius);
+    padding: 10px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 250px; /* Fallback for slow-loading ads */
+}
+
+/* Explanation:
+   - background-color: var(--secondary-bg) → Matches site theme
+   - border: 1px solid var(--border-color) → Subtle border
+   - border-radius: var(--radius) → Rounded corners
+   - padding: 10px → Space inside container
+   - display: flex → Flexbox for centering
+   - justify-content: center → Horizontal center
+   - align-items: center → Vertical center
+   - min-height: 250px → Fallback space for ad while loading
+*/
+
+.ad-container:nth-child(2) {
+    min-height: 600px;
+}
+
+/* Explanation:
+   - Targets second ad container
+   - Increases min-height to 600px for 300x600 ad
+   - Ensures proper spacing while ad loads
+*/
+
+/* ========== RESPONSIVE: HIDE SIDEBAR ON MOBILE ========== */
+
+@media (max-width: 799px) {
+    .main-wrapper {
+        flex-direction: column;
+        padding: 10px;
+    }
+    
+    /* Explanation:
+       - flex-direction: column → Stack content vertically
+       - padding: 10px → Reduced padding on mobile
+       - Makes single-column layout on small screens
+    */
+
+    .sidebar {
+        display: none; /* Hide sidebar on screens < 800px */
+    }
+    
+    /* Explanation:
+       - display: none → Completely hides sidebar
+       - Keeps mobile view clean and full-width
+    */
+}
+
+/* ========== TABLET OPTIMIZATION ========== */
+
+@media (max-width: 1024px) {
+    .main-wrapper {
+        gap: 15px;
+        padding: 15px;
+    }
+    
+    /* Explanation:
+       - Reduced gap for tablet screens
+       - Adjusted padding for medium devices
+    */
+
+    .sidebar {
+        width: 300px; /* Keep sidebar at 300px even on tablet */
+    }
+    
+    /* Explanation:
+       - Maintains 300px width on tablets
+       - Sidebar stays fixed width throughout responsive range
+    */
+}
+
+/* ============================================================
+   
+   RESPONSIVE BREAKPOINTS:
+   
+   Desktop (≥ 1200px):
+     - Main: 100% - 300px - gaps
+     - Sidebar: 300px fixed
+     - Gap: 20px
+   
+   Tablet (800-1024px):
+     - Main: 100% - 300px - gaps
+     - Sidebar: 300px fixed
+     - Gap: 15px
+   
+   Mobile (< 800px):
+     - Main: 100%
+     - Sidebar: Hidden (display: none)
+     - Gap: N/A
+     - Padding: 10px
+   
+   ============================================================ */
+
+/* ============================================================
+   
+   STICKY POSITIONING BEHAVIOR:
+   
+   When scrolling down:
+   1. User scrolls
+   2. Sidebar reaches top: 20px position
+   3. Sidebar "sticks" to viewport
+   4. Ads stay visible while scrolling main content
+   5. Main content scrolls behind/around sticky sidebar
+   
+   This increases ad visibility and engagement!
+   
+   ============================================================ */
+
+/* ============================================================
+   
+   JUICYADS INTEGRATION:
+   
+   Two ad containers are provided:
+   
+   1. First (.ad-container:nth-child(1)):
+      - Min-height: 250px
+      - Expected ad: 300x250
+      - Zone ID: 1106334
+      - Status: ✅ Active
+   
+   2. Second (.ad-container:nth-child(2)):
+      - Min-height: 600px
+      - Expected ad: 300x600
+      - Zone ID: SECOND_ZONE_ID (placeholder)
+      - Status: 🚫 Needs your zone ID
+   
+   ============================================================ */

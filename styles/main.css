@@ -86,6 +86,190 @@ li {
     color: var(--secondary-text);
 }
 
+/* ========== MAIN LAYOUT WITH SIDEBAR ========== */
+/* Two-column layout: main content + right sidebar */
+.main-wrapper {
+    display: flex;
+    gap: 20px;
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.main-content {
+    flex: 1;
+    min-width: 0; /* Prevents flex items from overflowing */
+}
+
+.sidebar {
+    width: 300px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    position: sticky;
+    top: 20px;
+    height: fit-content;
+    min-width: 300px;
+}
+
+/* ========== SIDEBAR BOXES ========== */
+.sidebar-box {
+    background-color: var(--secondary-bg);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius);
+    padding: 15px;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    box-sizing: border-box;
+    overflow: visible;
+}
+
+/* Ad containers (first & third sidebar boxes) */
+.sidebar-box:nth-child(1),
+.sidebar-box:nth-child(3) {
+    justify-content: center;
+    align-items: center;
+    min-height: 250px;
+    width: 100%;
+}
+
+.ad-box {
+    order: -1; /* Ensure ad box is always at the top */
+    padding: 0;
+    border: none;
+    background: transparent;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 250px;
+    width: 100%;
+}
+
+.ad-box script {
+    display: none !important;
+}
+
+.ad-box ins {
+    display: block !important;
+    width: 300px !important;
+    height: 250px !important;
+    margin: 0 auto !important;
+}
+
+.sidebar-box:nth-child(1) ins,
+.sidebar-box:nth-child(3) ins {
+    display: block;
+    width: 300px;
+    height: 250px;
+    margin: 0 auto;
+}
+
+.sidebar-box:nth-child(1) script,
+.sidebar-box:nth-child(3) script {
+    display: none;
+}
+
+.ad-box-skyscraper {
+    order: 0;
+    padding: 0;
+    border: none;
+    background: transparent;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 600px;
+    width: 100%;
+}
+
+.ad-box-skyscraper script {
+    display: none !important;
+}
+
+.ad-box-skyscraper ins {
+    display: block !important;
+    width: 160px !important;
+    height: 600px !important;
+    margin: 0 auto !important;
+}
+
+.sidebar-box h3 {
+    color: var(--primary-text);
+    font-size: 18px;
+    font-weight: 600;
+    margin: 0 0 12px 0;
+    padding: 0;
+    border-bottom: 2px solid var(--accent-color);
+    padding-bottom: 10px;
+}
+
+.categories-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.categories-list li {
+    margin: 0;
+    padding: 0;
+}
+
+.categories-list a {
+    color: var(--secondary-text);
+    text-decoration: none;
+    font-size: 14px;
+    display: block;
+    padding: 8px 12px;
+    border-radius: 4px;
+    transition: all 0.3s ease;
+    border-left: 3px solid transparent;
+}
+
+.categories-list a:hover {
+    color: var(--accent-color);
+    background-color: rgba(230, 57, 70, 0.1);
+    border-left-color: var(--accent-color);
+    padding-left: 15px;
+}
+
+.categories-list .view-all {
+    margin-top: 4px;
+    font-weight: 600;
+    color: var(--accent-color);
+    border-left-color: var(--accent-color);
+}
+
+.categories-list .view-all:hover {
+    color: #ff6b7a;
+}
+
+/* ========== RESPONSIVE: HIDE SIDEBAR ON MOBILE ========== */
+@media (max-width: 799px) {
+    .main-wrapper {
+        flex-direction: column;
+        padding: 10px;
+    }
+
+    .sidebar {
+        display: none; /* Hide sidebar on screens < 800px */
+    }
+}
+
+/* ========== TABLET OPTIMIZATION ========== */
+@media (max-width: 1024px) {
+    .main-wrapper {
+        gap: 15px;
+        padding: 15px;
+    }
+
+    .sidebar {
+        width: 300px; /* Keep sidebar at 300px even on tablet */
+    }
+}
+
 /* ========== HEADER ========== */
 header {
     background-color: var(--secondary-bg);
@@ -387,6 +571,30 @@ section {
 
 .video-info {
     padding: 15px;
+}
+
+.share-button {
+    background-color: #ff3366;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 13px;
+    margin-top: 10px;
+    display: inline-block;
+    width: 100%;
+    font-weight: 600;
+    transition: background-color var(--transition);
+    text-align: center;
+}
+
+.share-button:hover {
+    background-color: #cc2852;
+}
+
+.share-button:active {
+    transform: scale(0.98);
 }
 
 .video-title {
@@ -916,6 +1124,105 @@ footer {
 }
 
 .btn-no:hover {
+    background-color: var(--border-color);
+    transform: scale(1.05);
+}
+
+/* ========== SHARE MODAL ========== */
+.share-modal {
+    display: flex;
+    position: fixed;
+    z-index: 9999;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.9);
+    align-items: center;
+    justify-content: center;
+}
+
+.share-modal-content {
+    background-color: var(--secondary-bg);
+    padding: 30px var(--spacing);
+    border-radius: var(--radius);
+    border: 2px solid var(--accent-color);
+    max-width: 450px;
+    width: 90%;
+    text-align: center;
+    box-shadow: 0 4px 30px rgba(230, 57, 70, 0.5);
+}
+
+.share-modal-content h3 {
+    color: var(--accent-color);
+    margin-bottom: 15px;
+    font-size: 1.5rem;
+}
+
+.share-modal-content p {
+    margin-bottom: 25px;
+    font-size: 0.95rem;
+    color: var(--secondary-text);
+    line-height: 1.4;
+}
+
+.share-options {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.share-option {
+    padding: 12px 20px;
+    border-radius: var(--radius);
+    text-decoration: none;
+    font-weight: 600;
+    transition: all var(--transition);
+    display: inline-block;
+    color: white;
+    cursor: pointer;
+}
+
+.share-option.twitter {
+    background-color: #1da1f2;
+}
+
+.share-option.twitter:hover {
+    background-color: #1a91da;
+    transform: translateY(-2px);
+}
+
+.share-option.reddit {
+    background-color: #ff4500;
+}
+
+.share-option.reddit:hover {
+    background-color: #ff5722;
+    transform: translateY(-2px);
+}
+
+.share-option.telegram {
+    background-color: #0088cc;
+}
+
+.share-option.telegram:hover {
+    background-color: #006bb3;
+    transform: translateY(-2px);
+}
+
+.share-close {
+    padding: 10px 20px;
+    background-color: var(--tertiary-bg);
+    color: var(--primary-text);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius);
+    cursor: pointer;
+    font-weight: 600;
+    transition: all var(--transition);
+}
+
+.share-close:hover {
     background-color: var(--border-color);
     transform: scale(1.05);
 }

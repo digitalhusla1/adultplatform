@@ -239,8 +239,12 @@ async function getVideo(videoId) {
     try {
         // Validate video ID format
         if (!videoId || typeof videoId !== 'string' || videoId.length !== 11) {
+            console.error(`❌ Invalid video ID format. Got: "${videoId}" (length: ${videoId ? videoId.length : 'null'})`);
+            console.error('Expected: 11 character alphanumeric string');
             throw new Error('Invalid video ID format');
         }
+
+        console.log(`🔍 Fetching video: ${videoId}`);
 
         // Build API URL
         const url = new URL(`${CONFIG.API_BASE}video/id/`);
@@ -248,32 +252,39 @@ async function getVideo(videoId) {
         url.searchParams.append('thumbsize', CONFIG.THUMB_SIZE);
         url.searchParams.append('format', 'json');
 
+        console.log(`🌐 API URL: ${url.toString()}`);
+
         // Fetch with timeout
         const controller = new AbortController();
         const timeout = setTimeout(() => controller.abort(), 10000);
 
+        console.log('⏳ Sending request (timeout: 10s)...');
         const response = await fetch(url.toString(), { signal: controller.signal });
         clearTimeout(timeout);
+
+        console.log(`📊 Response status: ${response.status} ${response.statusText}`);
 
         if (!response.ok) {
             throw new Error(`API HTTP Error ${response.status}`);
         }
 
         const data = await response.json();
+        console.log('📦 API Response data:', data);
         
         // API returns empty array if video is removed or doesn't exist
         if (Array.isArray(data) && data.length === 0) {
-            console.warn(`Video ${videoId} not found or removed`);
+            console.warn(`⚠️  Video ${videoId} not found (empty array response)`);
             return null;
         }
 
         // Check if video is in removed list
         const removedIds = await getRemovedIds();
         if (data.id && removedIds.includes(data.id)) {
-            console.warn(`Video ${videoId} is in removed list`);
+            console.warn(`⚠️  Video ${videoId} is in removed list`);
             return null;
         }
 
+        console.log('✅ Video data retrieved successfully');
         return data;
 
     } catch (error) {
@@ -541,13 +552,79 @@ function renderVideos(videos, containerId) {
  */
 function goToVideo(videoId) {
     try {
+        console.log('🎬 goToVideo called with ID:', videoId);
+        
         if (!videoId) {
-            console.error('Invalid video ID');
+            console.error('❌ Invalid video ID');
             return;
         }
-        window.location.href = `video.html?id=${encodeURIComponent(videoId)}`;
+        
+        const url = `video.html?id=${encodeURIComponent(videoId)}`;
+        console.log('🔗 Navigating to:', url);
+        window.location.href = url;
     } catch (error) {
-        console.error('goToVideo Error:', error);
+        console.error('❌ goToVideo Error:', error);
+    }
+}
+
+/**
+ * Share video to Twitter/X, Reddit, and Telegram
+ * @param {string} videoId - Video ID from API
+ * @param {string} videoTitle - Video title for sharing
+ */
+function shareVideo(videoId, videoTitle) {
+    try {
+        // Build video URL
+        const slug = videoTitle
+            .toLowerCase()
+            .replace(/[^a-z0-9]/gi, '-')
+            .replace(/-+/g, '-')
+            .substring(0, 80);
+        const videoUrl = `https://hdpornlove.com/watch/${videoId}/${slug}/`;
+        const shortTitle = videoTitle.substring(0, 70) + (videoTitle.length > 70 ? '...' : '');
+
+        // Twitter/X share URL with NSFW hashtags
+        const twitterText = `Check out this hot new HD video - ${shortTitle} #NSFW #AdultContent #HDpornlove`;
+        const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(twitterText)}&url=${encodeURIComponent(videoUrl)}`;
+
+        // Reddit share URL with [NSFW] tag
+        const redditTitle = `${shortTitle} [NSFW]`;
+        const redditUrl = `https://www.reddit.com/submit?url=${encodeURIComponent(videoUrl)}&title=${encodeURIComponent(redditTitle)}`;
+
+        // Telegram share
+        const telegramText = `Check this hot video: ${shortTitle}`;
+        const telegramUrl = `https://t.me/share/url?url=${encodeURIComponent(videoUrl)}&text=${encodeURIComponent(telegramText)}`;
+
+        // Create share modal
+        const modal = document.createElement('div');
+        modal.className = 'share-modal';
+        modal.innerHTML = `
+            <div class="share-modal-content">
+                <h3>🔗 Share This Video</h3>
+                <p>${escapeHtml(videoTitle)}</p>
+                <div class="share-options">
+                    <a href="${twitterUrl}" target="_blank" rel="noopener noreferrer" class="share-option twitter" title="Share on Twitter/X">
+                        <span>𝕏 Twitter</span>
+                    </a>
+                    <a href="${redditUrl}" target="_blank" rel="noopener noreferrer" class="share-option reddit" title="Share on Reddit">
+                        <span>🔗 Reddit</span>
+                    </a>
+                    <a href="${telegramUrl}" target="_blank" rel="noopener noreferrer" class="share-option telegram" title="Share on Telegram">
+                        <span>✈️ Telegram</span>
+                    </a>
+                </div>
+                <button class="share-close" onclick="this.closest('.share-modal').remove()">Close</button>
+            </div>
+        `;
+        modal.onclick = (e) => {
+            if (e.target === modal) modal.remove();
+        };
+
+        document.body.appendChild(modal);
+        console.log('Share modal opened for video:', videoTitle);
+    } catch (error) {
+        console.error('Error sharing video:', error);
+        alert('Unable to open share dialog. Please try again.');
     }
 }
 
@@ -757,36 +834,49 @@ async function initSearchPage() {
 async function initVideoPage() {
     const videoId = getUrlParam('id');
     
+    console.log('=== VIDEO PAGE INIT ===');
+    console.log('URL:', window.location.href);
+    console.log('Video ID from URL:', videoId);
+    
     // Validate video ID
     if (!videoId) {
-        console.warn('No video ID provided');
+        console.error('❌ No video ID provided in URL');
+        console.log('Expected URL format: video.html?id=11charID');
         window.location.href = 'index.html';
         return;
     }
 
     const container = document.getElementById('videoContainer');
     if (!container) {
-        console.log('Not on video page');
+        console.log('❌ videoContainer element not found - not on video page');
         return;
     }
 
     try {
         // Show loading state
+        console.log('📺 Loading video details for ID:', videoId);
         container.innerHTML = '<div class="loading">Loading video...</div>';
 
         // Fetch video details
+        console.log('🌐 Making API request...');
         const video = await getVideo(videoId);
+        
+        console.log('API Response:', video);
         
         // Check if video was found
         if (!video || !video.id) {
+            console.error('❌ Video not found or removed - ID:', videoId);
             document.getElementById('noVideo').style.display = 'block';
             container.style.display = 'none';
-            console.warn(`Video ${videoId} not found or removed`);
             return;
         }
 
+        console.log('✅ Video found:', video.title);
+
         // Render embed iframe
         const embedUrl = escapeHtml(video.embed);
+        console.log('📹 Embed URL:', embedUrl);
+        
         container.innerHTML = `<iframe 
             src="${embedUrl}" 
             allowfullscreen 
@@ -1348,9 +1438,10 @@ function createVideoCard(video) {
     const title = escapeHtml(video.title);
     const thumbnail = video.default_thumb?.src || '';
     const duration = video.length_min || '0:00';
+    const videoId = escapeHtml(video.id);
 
     return `
-        <div class="video-card" onclick="goToVideo('${video.id}')">
+        <div class="video-card" onclick="goToVideo('${videoId}')">
             <div class="video-thumbnail">
                 <img src="${thumbnail}" alt="${title}" loading="lazy">
                 <div class="video-overlay">
@@ -1364,6 +1455,7 @@ function createVideoCard(video) {
                     <span class="video-stat">👁 ${views} views</span>
                     <span class="video-stat">⭐ ${video.rate}/5</span>
                 </div>
+                <button class="share-button" onclick="shareVideo('${videoId}', '${title.replace(/'/g, "\\'")}'); return false;">📤 Share This Video</button>
             </div>
         </div>
     `;

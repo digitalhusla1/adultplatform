@@ -1,0 +1,65 @@
+/* ========== MAIN LAYOUT WITH SIDEBAR ========== */
+/* Two-column layout: main content + right sidebar */
+/* ADD THIS TO styles/main.css - INSERT RIGHT BEFORE "/* ========== HEADER ==========" COMMENT */
+
+.main-wrapper {
+    display: flex;
+    gap: 20px;
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.main-content {
+    flex: 1;
+    min-width: 0; /* Prevents flex items from overflowing */
+}
+
+.sidebar {
+    width: 300px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    position: sticky;
+    top: 20px;
+    height: fit-content;
+}
+
+.ad-container {
+    background-color: var(--secondary-bg);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius);
+    padding: 10px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 250px; /* Fallback for slow-loading ads */
+}
+
+.ad-container:nth-child(2) {
+    min-height: 600px;
+}
+
+/* ========== RESPONSIVE: HIDE SIDEBAR ON MOBILE ========== */
+@media (max-width: 799px) {
+    .main-wrapper {
+        flex-direction: column;
+        padding: 10px;
+    }
+
+    .sidebar {
+        display: none; /* Hide sidebar on screens < 800px */
+    }
+}
+
+/* ========== TABLET OPTIMIZATION ========== */
+@media (max-width: 1024px) {
+    .main-wrapper {
+        gap: 15px;
+        padding: 15px;
+    }
+
+    .sidebar {
+        width: 300px; /* Keep sidebar at 300px even on tablet */
+    }
+}
