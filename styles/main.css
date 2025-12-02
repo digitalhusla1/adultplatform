@@ -440,6 +440,46 @@ section {
     font-weight: 600;
 }
 
+/* ========== LEADERBOARD AD SECTION (728x90) ========== */
+.ad-section {
+    margin: 30px 0;
+    padding: 15px;
+    background-color: transparent;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: var(--radius);
+}
+
+.ad-leaderboard {
+    margin: 30px 0;
+    min-height: 90px;
+}
+
+.ad-leaderboard script {
+    display: none !important;
+}
+
+.ad-leaderboard ins {
+    display: block !important;
+    width: 728px !important;
+    height: 90px !important;
+    margin: 0 auto !important;
+}
+
+@media (max-width: 799px) {
+    .ad-leaderboard {
+        margin: 20px 0;
+        min-height: auto;
+    }
+    
+    .ad-leaderboard ins {
+        width: 100% !important;
+        height: auto !important;
+        max-width: 728px !important;
+    }
+}
+
 /* ========== FEATURED SECTION ========== */
 .featured-section {
     margin: 40px 0;
