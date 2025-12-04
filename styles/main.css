@@ -540,6 +540,36 @@ section {
     }
 }
 
+/* ========== VGA AD SECTION (308x286) ========== */
+.ad-vga {
+    margin: 30px 0;
+    min-height: 286px;
+}
+
+.ad-vga script {
+    display: none !important;
+}
+
+.ad-vga ins {
+    display: block !important;
+    width: 308px !important;
+    height: 286px !important;
+    margin: 0 auto !important;
+}
+
+@media (max-width: 799px) {
+    .ad-vga {
+        margin: 20px 0;
+        min-height: auto;
+    }
+    
+    .ad-vga ins {
+        width: 100% !important;
+        height: auto !important;
+        max-width: 308px !important;
+    }
+}
+
 /* ========== AD BILLBOARD 908x258 ========== */
 .ad-billboard {
     margin: 30px 0;
