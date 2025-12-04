@@ -480,6 +480,68 @@ section {
     }
 }
 
+/* ========== MEDIUM AD SECTION (632x190) ========== */
+.ad-medium {
+    margin: 30px 0;
+    min-height: 190px;
+}
+
+.ad-medium script {
+    display: none !important;
+}
+
+.ad-medium ins {
+    display: block !important;
+    width: 632px !important;
+    height: 190px !important;
+    margin: 0 auto !important;
+}
+
+@media (max-width: 799px) {
+    .ad-medium {
+        margin: 20px 0;
+        min-height: auto;
+    }
+    
+    .ad-medium ins {
+        width: 100% !important;
+        height: auto !important;
+        max-width: 632px !important;
+    }
+}
+
+/* ========== AD BILLBOARD 908x258 ========== */
+.ad-billboard {
+    margin: 30px 0;
+    min-height: 258px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.ad-billboard script {
+    display: none !important;
+}
+
+.ad-billboard ins {
+    display: block !important;
+    width: 908px !important;
+    height: 258px !important;
+    margin: 0 auto !important;
+}
+
+@media (max-width: 1024px) {
+    .ad-billboard {
+        min-height: auto;
+    }
+    
+    .ad-billboard ins {
+        width: 100% !important;
+        height: auto !important;
+        max-width: 908px !important;
+    }
+}
+
 /* ========== FEATURED SECTION ========== */
 .featured-section {
     margin: 40px 0;
