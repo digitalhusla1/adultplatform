@@ -510,6 +510,36 @@ section {
     }
 }
 
+/* ========== SMALL AD SECTION (474x190) ========== */
+.ad-small {
+    margin: 30px 0;
+    min-height: 190px;
+}
+
+.ad-small script {
+    display: none !important;
+}
+
+.ad-small ins {
+    display: block !important;
+    width: 474px !important;
+    height: 190px !important;
+    margin: 0 auto !important;
+}
+
+@media (max-width: 799px) {
+    .ad-small {
+        margin: 20px 0;
+        min-height: auto;
+    }
+    
+    .ad-small ins {
+        width: 100% !important;
+        height: auto !important;
+        max-width: 474px !important;
+    }
+}
+
 /* ========== AD BILLBOARD 908x258 ========== */
 .ad-billboard {
     margin: 30px 0;
