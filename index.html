@@ -60,154 +60,116 @@
         </div>
     </header>
 
-    <!-- MAIN CONTENT AREA WITH SIDEBAR -->
-    <main class="main-wrapper">
-        <!-- MAIN CONTENT -->
-        <div class="main-content">
-            <!-- HERO SECTION - Welcome message -->
-            <section class="hero">
-                <h2>Welcome to HDpornlove.com</h2>
-                <p>Thousands of HD adult videos at your fingertips</p>
-                <p class="disclaimer">⚠️ 18+ Only - All models verified aged 18+</p>
-            </section>
+    <!-- MAIN CONTENT AREA - FULL WIDTH (NO SIDEBAR) -->
+    <main style="max-width: 1400px; margin: 0 auto; padding: 20px; width: 100%; box-sizing: border-box;">
+        <!-- HERO SECTION - Welcome message -->
+        <section class="hero">
+            <h2>Welcome to HDpornlove.com</h2>
+            <p>Thousands of HD adult videos at your fingertips</p>
+            <p class="disclaimer">⚠️ 18+ Only - All models verified aged 18+</p>
+        </section>
 
-            <!-- AD PLACEHOLDER: 728x90 Leaderboard -->
-            <section class="ad-section ad-leaderboard">
-                <div style="width: 728px; height: 90px; background-color: #f0f0f0; border: 2px dashed #ccc; display: flex; align-items: center; justify-content: center; color: #999; font-family: Arial, sans-serif; font-size: 14px; margin: 0 auto; flex-direction: column;">
-                    AD SPACE: 728x90 (Leaderboard)
-                </div>
-            </section>
-
-            <section class="featured-section">
-                <h2>Trending This Week</h2>
-                <div id="featuredVideos" class="video-grid">
-                    <div class="loading">Loading videos...</div>
-                </div>
-                <div class="pagination">
-                    <button id="prevBtn" class="btn-pagination" style="display: none;">← Previous</button>
-                    <span id="pageInfo"></span>
-                    <button id="nextBtn" class="btn-pagination" style="display: none;">Next →</button>
-                </div>
-            </section>
-
-            <!-- AD PLACEHOLDER: 632x190 Medium Rectangle -->
-            <section class="ad-section ad-medium">
-                <div style="width: 632px; height: 190px; background-color: #f0f0f0; border: 2px dashed #ccc; display: flex; align-items: center; justify-content: center; color: #999; font-family: Arial, sans-serif; font-size: 14px; margin: 0 auto; flex-direction: column;">
-                    AD SPACE: 632x190 (Medium Rectangle)
-                </div>
-            </section>
-
-            <section class="featured-section trending-section">
-                <h2>🔥 Most Viewed This Week</h2>
-                <div id="mostViewedVideos" class="video-grid">
-                    <div class="loading">Loading videos...</div>
-                </div>
-                <div class="pagination">
-                    <button id="prevViewedBtn" class="btn-pagination" style="display: none;">← Previous</button>
-                    <span id="pageViewedInfo"></span>
-                    <button id="nextViewedBtn" class="btn-pagination" style="display: none;">Next →</button>
-                </div>
-            </section>
-
-            <!-- AD PLACEHOLDER: 474x190 Small Rectangle -->
-            <section class="ad-section ad-small">
-                <div style="width: 474px; height: 190px; background-color: #f0f0f0; border: 2px dashed #ccc; display: flex; align-items: center; justify-content: center; color: #999; font-family: Arial, sans-serif; font-size: 14px; margin: 0 auto; flex-direction: column;">
-                    AD SPACE: 474x190 (Small Rectangle)
-                </div>
-            </section>
-
-            <section class="featured-section trending-section">
-                <h2>⭐ Top Rated This Month</h2>
-                <div id="topRatedVideos" class="video-grid">
-                    <div class="loading">Loading videos...</div>
-                </div>
-                <div class="pagination">
-                    <button id="prevRatedBtn" class="btn-pagination" style="display: none;">← Previous</button>
-                    <span id="pageRatedInfo"></span>
-                    <button id="nextRatedBtn" class="btn-pagination" style="display: none;">Next →</button>
-                </div>
-            </section>
-
-            <!-- AD PLACEHOLDER: 308x286 VGA -->
-            <section class="ad-section ad-vga">
-                <div style="width: 308px; height: 286px; background-color: #f0f0f0; border: 2px dashed #ccc; display: flex; align-items: center; justify-content: center; color: #999; font-family: Arial, sans-serif; font-size: 14px; margin: 0 auto; flex-direction: column;">
-                    AD SPACE: 308x286 (VGA)
-                </div>
-            </section>
-
-            <section class="featured-section trending-section">
-                <h2>🆕 Newest Videos</h2>
-                <div id="newestVideos" class="video-grid">
-                    <div class="loading">Loading videos...</div>
-                </div>
-                <div class="pagination">
-                    <button id="prevNewestBtn" class="btn-pagination" style="display: none;">← Previous</button>
-                    <span id="pageNewestInfo"></span>
-                    <button id="nextNewestBtn" class="btn-pagination" style="display: none;">Next →</button>
-                </div>
-            </section>
-
-            <!-- AD PLACEHOLDER: 908x258 Billboard -->
-            <section class="ad-section ad-billboard">
-                <div style="width: 908px; height: 258px; background-color: #f0f0f0; border: 2px dashed #ccc; display: flex; align-items: center; justify-content: center; color: #999; font-family: Arial, sans-serif; font-size: 14px; margin: 0 auto; flex-direction: column;">
-                    AD SPACE: 908x258 (Billboard)
-                </div>
-            </section>
-
-            <section class="cta-section">
-                <h3>Browse by Category</h3>
-                <p><a href="categories.html" class="btn-primary">Browse Categories</a></p>
-            </section>
-
-            <section class="newsletter-section">
-                <h3>Get Weekly Updates (Optional)</h3>
-                <p>Subscribe for new video recommendations</p>
-                <form id="newsletterForm" name="newsletter" method="POST" netlify>
-                    <input type="email" name="email" placeholder="your@email.com" required>
-                    <label>
-                        <input type="checkbox" name="consent" required>
-                        I confirm I am 18+ and agree to receive updates
-                    </label>
-                    <button type="submit" class="btn-primary">Subscribe</button>
-                </form>
-                <p class="gdpr-note">We respect your privacy. No spam, unsubscribe anytime.</p>
-            </section>
-        </div>
-
-        <!-- RIGHT SIDEBAR WITH ADS & CATEGORIES -->
-        <aside class="sidebar">
-            <!-- AD PLACEHOLDER: 300x250 Sidebar -->
-            <div class="sidebar-box ad-box">
-                <div style="width: 300px; height: 250px; background-color: #f0f0f0; border: 2px dashed #ccc; display: flex; align-items: center; justify-content: center; color: #999; font-family: Arial, sans-serif; font-size: 14px;">
-                    AD SPACE: 300x250
-                </div>
+        <!-- AD PLACEHOLDER: 728x90 Leaderboard -->
+        <section class="ad-section ad-leaderboard">
+            <div style="width: 728px; height: 90px; background-color: #f0f0f0; border: 2px dashed #ccc; display: flex; align-items: center; justify-content: center; color: #999; font-family: Arial, sans-serif; font-size: 14px; margin: 0 auto; flex-direction: column;">
+                AD SPACE: 728x90 (Leaderboard)
             </div>
+        </section>
 
-            <!-- Categories Section -->
-            <div class="sidebar-box">
-                <h3>Categories</h3>
-                <ul class="categories-list">
-                    <li><a href="/category/amateur">Amateur</a></li>
-                    <li><a href="/category/anal">Anal</a></li>
-                    <li><a href="/category/big-tits">Big Tits</a></li>
-                    <li><a href="/category/blowjob">Blowjob</a></li>
-                    <li><a href="/category/creampie">Creampie</a></li>
-                    <li><a href="/category/hardcore">Hardcore</a></li>
-                    <li><a href="/category/lesbian">Lesbian</a></li>
-                    <li><a href="/category/milf">MILF</a></li>
-                    <li><a href="/category/teen">Teen</a></li>
-                    <li><a href="/category/threesome">Threesome</a></li>
-                    <li><a href="/categories" class="view-all">All Categories →</a></li>
-                </ul>
+        <section class="featured-section">
+            <h2>Trending This Week</h2>
+            <div id="featuredVideos" class="video-grid">
+                <div class="loading">Loading videos...</div>
             </div>
+            <div class="pagination">
+                <button id="prevBtn" class="btn-pagination" style="display: none;">← Previous</button>
+                <span id="pageInfo"></span>
+                <button id="nextBtn" class="btn-pagination" style="display: none;">Next →</button>
+            </div>
+        </section>
 
-            <!-- AD PLACEHOLDER: 160x600 Skyscraper -->
-            <div class="sidebar-box ad-box-skyscraper">
-                <div style="width: 160px; height: 600px; background-color: #f0f0f0; border: 2px dashed #ccc; display: flex; align-items: center; justify-content: center; color: #999; font-family: Arial, sans-serif; font-size: 12px; text-align: center;">
-                    AD SPACE: 160x600
-                </div>
+        <!-- AD PLACEHOLDER: 300x250 Box (Blended) -->
+        <section class="ad-section ad-box">
+            <div style="width: 300px; height: 250px; background-color: #f0f0f0; border: 2px dashed #ccc; display: flex; align-items: center; justify-content: center; color: #999; font-family: Arial, sans-serif; font-size: 14px; margin: 20px auto; flex-direction: column;">
+                AD SPACE: 300x250
             </div>
-        </aside>
+        </section>
+
+        <section class="featured-section trending-section">
+            <h2>🔥 Most Viewed This Week</h2>
+            <div id="mostViewedVideos" class="video-grid">
+                <div class="loading">Loading videos...</div>
+            </div>
+            <div class="pagination">
+                <button id="prevViewedBtn" class="btn-pagination" style="display: none;">← Previous</button>
+                <span id="pageViewedInfo"></span>
+                <button id="nextViewedBtn" class="btn-pagination" style="display: none;">Next →</button>
+            </div>
+        </section>
+
+        <!-- AD PLACEHOLDER: 632x190 Medium Rectangle -->
+        <section class="ad-section ad-medium">
+            <div style="width: 632px; height: 190px; background-color: #f0f0f0; border: 2px dashed #ccc; display: flex; align-items: center; justify-content: center; color: #999; font-family: Arial, sans-serif; font-size: 14px; margin: 0 auto; flex-direction: column;">
+                AD SPACE: 632x190 (Medium Rectangle)
+            </div>
+        </section>
+
+        <section class="featured-section trending-section">
+            <h2>⭐ Top Rated This Month</h2>
+            <div id="topRatedVideos" class="video-grid">
+                <div class="loading">Loading videos...</div>
+            </div>
+            <div class="pagination">
+                <button id="prevRatedBtn" class="btn-pagination" style="display: none;">← Previous</button>
+                <span id="pageRatedInfo"></span>
+                <button id="nextRatedBtn" class="btn-pagination" style="display: none;">Next →</button>
+            </div>
+        </section>
+
+        <!-- AD PLACEHOLDER: 474x190 Small Rectangle -->
+        <section class="ad-section ad-small">
+            <div style="width: 474px; height: 190px; background-color: #f0f0f0; border: 2px dashed #ccc; display: flex; align-items: center; justify-content: center; color: #999; font-family: Arial, sans-serif; font-size: 14px; margin: 0 auto; flex-direction: column;">
+                AD SPACE: 474x190 (Small Rectangle)
+            </div>
+        </section>
+
+        <section class="featured-section trending-section">
+            <h2>🆕 Newest Videos</h2>
+            <div id="newestVideos" class="video-grid">
+                <div class="loading">Loading videos...</div>
+            </div>
+            <div class="pagination">
+                <button id="prevNewestBtn" class="btn-pagination" style="display: none;">← Previous</button>
+                <span id="pageNewestInfo"></span>
+                <button id="nextNewestBtn" class="btn-pagination" style="display: none;">Next →</button>
+            </div>
+        </section>
+
+        <!-- AD PLACEHOLDER: 908x258 Billboard -->
+        <section class="ad-section ad-billboard">
+            <div style="width: 908px; height: 258px; background-color: #f0f0f0; border: 2px dashed #ccc; display: flex; align-items: center; justify-content: center; color: #999; font-family: Arial, sans-serif; font-size: 14px; margin: 0 auto; flex-direction: column;">
+                AD SPACE: 908x258 (Billboard)
+            </div>
+        </section>
+
+        <section class="cta-section">
+            <h3>Browse by Category</h3>
+            <p><a href="categories.html" class="btn-primary">Browse Categories</a></p>
+        </section>
+
+        <section class="newsletter-section">
+            <h3>Get Weekly Updates (Optional)</h3>
+            <p>Subscribe for new video recommendations</p>
+            <form id="newsletterForm" name="newsletter" method="POST" netlify>
+                <input type="email" name="email" placeholder="your@email.com" required>
+                <label>
+                    <input type="checkbox" name="consent" required>
+                    I confirm I am 18+ and agree to receive updates
+                </label>
+                <button type="submit" class="btn-primary">Subscribe</button>
+            </form>
+            <p class="gdpr-note">We respect your privacy. No spam, unsubscribe anytime.</p>
+        </section>
     </main>
 
     <footer>
