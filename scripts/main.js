@@ -1,39 +1,162 @@
 /* ========================================
    HDpornlove.com - Main JavaScript
    API Integration, Age Verification, Forms
+   Cross-Browser Compatible (IE11+)
    ======================================== */
 
-/* BROWSER COMPATIBILITY POLYFILLS */
-// Support for older browsers
-if (!window.Promise) {
-    console.warn('Promise not supported - some features may not work');
-}
-
-if (!('fetch' in window)) {
-    console.error('Fetch API not supported - please upgrade your browser');
-}
-
-// Smooth scroll polyfill for older browsers
-if (!('scrollBehavior' in document.documentElement.style)) {
-    HTMLElement.prototype.scrollIntoView = function(options) {
-        if (options && options.behavior === 'smooth') {
-            var start = this.offsetTop;
-            var change = window.innerHeight / 2;
-            var increment = change / 20;
-            var current = 0;
-            var animateScroll = function() {
-                current += increment;
-                window.scrollTo(0, start - change + current);
-                if (current < change) {
-                    requestAnimationFrame(animateScroll);
+/* BROWSER COMPATIBILITY POLYFILLS & DETECTION */
+// Feature detection with graceful fallbacks
+(function() {
+    'use strict';
+    
+    // Promise polyfill check
+    if (typeof Promise === 'undefined') {
+        console.warn('Promise not supported - some features may not work');
+        window.Promise = function() {}; // Minimal fallback
+    }
+    
+    // Fetch API availability check
+    if (!('fetch' in window)) {
+        console.warn('Fetch API not supported - XMLHttpRequest fallback will be used');
+        // Define fetch wrapper using XMLHttpRequest
+        window.fetch = function(url, options) {
+            return new Promise(function(resolve, reject) {
+                var xhr = new XMLHttpRequest();
+                var method = (options && options.method) || 'GET';
+                xhr.open(method, url, true);
+                xhr.onload = function() {
+                    resolve({
+                        ok: xhr.status >= 200 && xhr.status < 300,
+                        status: xhr.status,
+                        statusText: xhr.statusText,
+                        json: function() {
+                            try {
+                                return Promise.resolve(JSON.parse(xhr.responseText));
+                            } catch (e) {
+                                return Promise.reject(e);
+                            }
+                        }
+                    });
+                };
+                xhr.onerror = function() {
+                    reject(new Error('Network request failed'));
+                };
+                xhr.send(options && options.body || null);
+            });
+        };
+    }
+    
+    // Smooth scroll polyfill for older browsers
+    if (!('scrollBehavior' in document.documentElement.style)) {
+        HTMLElement.prototype.scrollIntoView = function(options) {
+            if (options && options.behavior === 'smooth') {
+                var start = this.offsetTop;
+                var change = window.innerHeight / 2;
+                var increment = change / 20;
+                var current = 0;
+                var animateScroll = function() {
+                    current += increment;
+                    window.scrollTo(0, start - change + current);
+                    if (current < change) {
+                        if (typeof requestAnimationFrame === 'function') {
+                            requestAnimationFrame(animateScroll);
+                        } else {
+                            setTimeout(animateScroll, 16);
+                        }
+                    }
+                };
+                animateScroll();
+            } else {
+                // Fallback to standard scrollIntoView
+                try {
+                    Element.prototype.scrollIntoView.call(this);
+                } catch (e) {
+                    window.scrollTo(0, this.offsetTop);
                 }
+            }
+        };
+    }
+    
+    // Object.assign polyfill for IE11
+    if (typeof Object.assign !== 'function') {
+        Object.assign = function(target) {
+            if (target === null || target === undefined) {
+                throw new TypeError('Cannot convert undefined or null to object');
+            }
+            var to = Object(target);
+            for (var index = 1; index < arguments.length; index++) {
+                var nextSource = arguments[index];
+                if (nextSource !== null && nextSource !== undefined) {
+                    for (var nextKey in nextSource) {
+                        if (Object.prototype.hasOwnProperty.call(nextSource, nextKey)) {
+                            to[nextKey] = nextSource[nextKey];
+                        }
+                    }
+                }
+            }
+            return to;
+        };
+    }
+    
+    // Array.from polyfill for IE11
+    if (!Array.from) {
+        Array.from = (function() {
+            var toStr = Object.prototype.toString;
+            var isCallable = function(fn) {
+                return typeof fn === 'function' || toStr.call(fn) === '[object Function]';
             };
-            animateScroll();
-        } else {
-            Element.prototype.scrollIntoView.call(this);
-        }
-    };
-}
+            var toInteger = function(value) {
+                var number = Number(value);
+                if (isNaN(number)) return 0;
+                if (number === 0 || !isFinite(number)) return number;
+                return (number > 0 ? 1 : -1) * Math.floor(Math.abs(number));
+            };
+            var maxSafeInteger = Math.pow(2, 53) - 1;
+            var toLength = function(value) {
+                var len = toInteger(value);
+                return Math.min(Math.max(len, 0), maxSafeInteger);
+            };
+            
+            return function(arrayLike) {
+                var C = this;
+                if (arrayLike === null || arrayLike === undefined) {
+                    throw new TypeError('Array.from requires an array-like object');
+                }
+                var items = Object(arrayLike);
+                var mapFn = arguments.length > 1 ? arguments[1] : undefined;
+                var T;
+                if (typeof mapFn !== 'undefined') {
+                    if (!isCallable(mapFn)) throw new TypeError('Array.from: when provided, the second argument must be a function');
+                    T = arguments.length > 2 ? arguments[2] : undefined;
+                }
+                var len = toLength(items.length);
+                var A = isCallable(C) ? Object(new C(len)) : new Array(len);
+                var k = 0;
+                var kValue;
+                while (k < len) {
+                    kValue = items[k];
+                    if (typeof mapFn !== 'undefined') {
+                        A[k] = typeof T === 'undefined' ? mapFn(kValue, k) : mapFn.call(T, kValue, k);
+                    } else {
+                        A[k] = kValue;
+                    }
+                    k += 1;
+                }
+                A.length = len;
+                return A;
+            };
+        }());
+    }
+})();
+
+// User Agent Detection for browser-specific handling
+var userAgent = navigator.userAgent;
+var isIE = /MSIE|Trident/.test(userAgent);
+var isEdge = /Edge/.test(userAgent);
+var isChrome = /Chrome/.test(userAgent) && !/Chromium/.test(userAgent);
+var isFirefox = /Firefox/.test(userAgent);
+var isSafari = /Safari/.test(userAgent) && !/Chrome/.test(userAgent);
+var isOpera = /Opera|OPR/.test(userAgent);
 
 /* CUSTOMIZATION GUIDE:
    1. API_BASE: Change if using a different Eporner API endpoint
@@ -1746,19 +1869,5 @@ window.addEventListener('unhandledrejection', (event) => {
     console.error('Unhandled promise rejection:', event.reason);
 });
 
-console.log('HDpornlove.com scripts loaded and ready');
-
-/**
- * Handle tag click - search for the tag
- * @param {string} tag - Tag to search
- */
-function searchTag(tag) {
-    try {
-        const cleanTag = tag.trim();
-        if (!cleanTag) return;
-        window.location.href = `search.html?query=${encodeURIComponent(cleanTag)}`;
-    } catch (error) {
-        console.error('Tag search error:', error);
-    }
-}
+console.log('HDpornlove.com scripts loaded and ready - All browsers supported');
 

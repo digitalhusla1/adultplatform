@@ -27,10 +27,6 @@ from = "/*"
 to = "/index.html"
 status = 200
 
-# Form handling
-[functions]
-directory = "netlify/functions"
-
 # Cache settings
 [[headers]]
 for = "/*"
