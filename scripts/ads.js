@@ -1,7 +1,115 @@
 /* ========================================
-   HDpornlove.com - Centralized Ad Management
-   Add all ads in one place, they auto-inject to all pages
+   HDpornlove.com - Centralized Ad Management & Tracking
+   Add all ads and tracking codes in one place, they auto-inject to all pages
    ======================================== */
+
+/* TRACKING & ANALYTICS CODES
+   Add codes here for Google Analytics, Google Tag Manager, verification codes, etc.
+   These will be automatically injected into all pages in the specified location
+*/
+const TRACKING_CODES = {
+    // Codes to inject in <head> section (analytics, verification, etc.)
+    head: [
+        // Example: Google Site Verification
+        // '<meta name="google-site-verification" content="YOUR_VERIFICATION_CODE_HERE" />',
+        
+        // Example: Google Analytics
+        // `<script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
+        // <script>
+        //   window.dataLayer = window.dataLayer || [];
+        //   function gtag(){dataLayer.push(arguments);}
+        //   gtag('js', new Date());
+        //   gtag('config', 'G-XXXXXXXXXX');
+        // </script>`,
+        
+        // Example: Google Tag Manager
+        // `<script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+        // new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+        // j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+        // 'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+        // })(window,document,'script','dataLayer','GTM-XXXXXXXXX');</script>`
+    ],
+
+    // Codes to inject in <body> section (GTM noscript, etc.)
+    body: [
+        // Example: Google Tag Manager noscript
+        // `<noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-XXXXXXXXX"
+        // height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>`
+    ],
+
+    // Codes to inject in <footer> section (tracking pixels, etc.)
+    footer: [
+        // Example: Tracking pixel
+        // '<img src="https://example.com/tracking.gif" alt="" style="display:none;" />'
+    ]
+};
+
+/**
+ * Inject tracking codes into head section
+ */
+function injectHeadCodes() {
+    try {
+        if (TRACKING_CODES.head && TRACKING_CODES.head.length > 0) {
+            const head = document.head;
+            TRACKING_CODES.head.forEach((code, index) => {
+                if (code && code.trim()) {
+                    const tempDiv = document.createElement('div');
+                    tempDiv.innerHTML = code;
+                    while (tempDiv.firstChild) {
+                        head.appendChild(tempDiv.firstChild);
+                    }
+                    console.log(`✅ Injected head tracking code ${index + 1}`);
+                }
+            });
+        }
+    } catch (error) {
+        console.error('❌ Error injecting head codes:', error);
+    }
+}
+
+/**
+ * Inject tracking codes into body section
+ */
+function injectBodyCodes() {
+    try {
+        if (TRACKING_CODES.body && TRACKING_CODES.body.length > 0) {
+            TRACKING_CODES.body.forEach((code, index) => {
+                if (code && code.trim()) {
+                    const tempDiv = document.createElement('div');
+                    tempDiv.innerHTML = code;
+                    while (tempDiv.firstChild) {
+                        document.body.insertBefore(tempDiv.firstChild, document.body.firstChild);
+                    }
+                    console.log(`✅ Injected body tracking code ${index + 1}`);
+                }
+            });
+        }
+    } catch (error) {
+        console.error('❌ Error injecting body codes:', error);
+    }
+}
+
+/**
+ * Inject tracking codes into footer section
+ */
+function injectFooterCodes() {
+    try {
+        if (TRACKING_CODES.footer && TRACKING_CODES.footer.length > 0) {
+            TRACKING_CODES.footer.forEach((code, index) => {
+                if (code && code.trim()) {
+                    const tempDiv = document.createElement('div');
+                    tempDiv.innerHTML = code;
+                    while (tempDiv.firstChild) {
+                        document.body.appendChild(tempDiv.firstChild);
+                    }
+                    console.log(`✅ Injected footer tracking code ${index + 1}`);
+                }
+            });
+        }
+    } catch (error) {
+        console.error('❌ Error injecting footer codes:', error);
+    }
+}
 
 const ADS = {
     // Leaderboard (728x90) - Appears at top of pages
@@ -122,9 +230,17 @@ function injectAllAds() {
     }
 }
 
-// Auto-inject ads when page loads
+// Auto-inject tracking codes when page loads
 if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', injectAllAds);
+    document.addEventListener('DOMContentLoaded', () => {
+        injectHeadCodes();
+        injectBodyCodes();
+        injectFooterCodes();
+        injectAllAds();
+    });
 } else {
+    injectHeadCodes();
+    injectBodyCodes();
+    injectFooterCodes();
     injectAllAds();
 }
