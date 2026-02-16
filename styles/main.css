@@ -163,6 +163,12 @@ li {
     width: 100%;
     box-sizing: border-box;
     overflow: visible;
+    margin-bottom: 15px;
+}
+
+/* Remove bottom margin from last sidebar box */
+.sidebar-box:last-child {
+    margin-bottom: 0;
 }
 
 /* Ad containers (first & third sidebar boxes) */
