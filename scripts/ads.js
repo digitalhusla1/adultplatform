@@ -6,73 +6,44 @@
 const ADS = {
     // Leaderboard (728x90) - Appears at top of pages
     leaderboard: {
-        enabled: true,
-        // Replace with your ad code or set to empty string to disable
-        code: `<!-- LEADERBOARD 728x90 AD CODE HERE -->
-<ins class="adsbygoogle" style="display:inline-block;width:728px;height:90px" data-ad-client="ca-pub-XXXXXX" data-ad-slot="XXXXXX"></ins>
-<script>
-  (adsbygoogle = window.adsbygoogle || []).push({});
-</script>`
+        enabled: false,
+        code: '' // Add your ad code here
     },
 
     // Medium Rectangle (632x190) - Mid-page ads
     medium: {
-        enabled: true,
-        code: `<!-- MEDIUM 632x190 AD CODE HERE -->
-<ins class="adsbygoogle" style="display:inline-block;width:632px;height:190px" data-ad-client="ca-pub-XXXXXX" data-ad-slot="XXXXXX"></ins>
-<script>
-  (adsbygoogle = window.adsbygoogle || []).push({});
-</script>`
+        enabled: false,
+        code: '' // Add your ad code here
     },
 
     // Small Rectangle (474x190) - Mobile-friendly
     small: {
-        enabled: true,
-        code: `<!-- SMALL 474x190 AD CODE HERE -->
-<ins class="adsbygoogle" style="display:inline-block;width:474px;height:190px" data-ad-client="ca-pub-XXXXXX" data-ad-slot="XXXXXX"></ins>
-<script>
-  (adsbygoogle = window.adsbygoogle || []).push({});
-</script>`
+        enabled: false,
+        code: '' // Add your ad code here
     },
 
     // VGA (308x286) - Medium square
     vga: {
-        enabled: true,
-        code: `<!-- VGA 308x286 AD CODE HERE -->
-<ins class="adsbygoogle" style="display:inline-block;width:308px;height:286px" data-ad-client="ca-pub-XXXXXX" data-ad-slot="XXXXXX"></ins>
-<script>
-  (adsbygoogle = window.adsbygoogle || []).push({});
-</script>`
+        enabled: false,
+        code: '' // Add your ad code here
     },
 
     // Billboard (908x258) - Large horizontal
     billboard: {
-        enabled: true,
-        code: `<!-- BILLBOARD 908x258 AD CODE HERE -->
-<ins class="adsbygoogle" style="display:inline-block;width:908px;height:258px" data-ad-client="ca-pub-XXXXXX" data-ad-slot="XXXXXX"></ins>
-<script>
-  (adsbygoogle = window.adsbygoogle || []).push({});
-</script>`
+        enabled: false,
+        code: '' // Add your ad code here
     },
 
     // Box (300x250) - Sidebar ad
     box: {
-        enabled: true,
-        code: `<!-- BOX 300x250 AD CODE HERE -->
-<ins class="adsbygoogle" style="display:inline-block;width:300px;height:250px" data-ad-client="ca-pub-XXXXXX" data-ad-slot="XXXXXX"></ins>
-<script>
-  (adsbygoogle = window.adsbygoogle || []).push({});
-</script>`
+        enabled: false,
+        code: '' // Add your ad code here
     },
 
     // Skyscraper (160x600) - Tall sidebar ad
     skyscraper: {
-        enabled: true,
-        code: `<!-- SKYSCRAPER 160x600 AD CODE HERE -->
-<ins class="adsbygoogle" style="display:inline-block;width:160px;height:600px" data-ad-client="ca-pub-XXXXXX" data-ad-slot="XXXXXX"></ins>
-<script>
-  (adsbygoogle = window.adsbygoogle || []).push({});
-</script>`
+        enabled: false,
+        code: '' // Add your ad code here
     }
 };
 
