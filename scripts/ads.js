@@ -86,7 +86,7 @@ function injectAllAds() {
         const leaderboardAds = document.querySelectorAll('.ad-leaderboard');
         if (ADS.leaderboard.enabled && ADS.leaderboard.code) {
             leaderboardAds.forEach(container => {
-                container.innerHTML = `<div style="width: 728px; border: 2px dashed #e63946; padding: 0; margin: 0 auto; display: flex; flex-direction: column;"><div style="flex: 1; display: flex; align-items: center; justify-content: center;">${ADS.leaderboard.code}</div><div style="padding: 4px; font-size: 11px; color: #999; text-align: center; background-color: rgba(230, 57, 70, 0.05); border-top: 1px solid rgba(230, 57, 70, 0.2);">728x90 Leaderboard</div></div>`;
+                container.innerHTML = `<div style="width: 728px; border: 2px dashed #e63946; padding: 0; margin: 0 auto; display: flex; flex-direction: column;"><div style="flex: 1; display: flex; align-items: center; justify-content: center;">${ADS.leaderboard.code}</div><div style="padding: 8px 4px; font-size: 11px; color: #999; text-align: center; background-color: rgba(230, 57, 70, 0.05); border-top: 1px solid rgba(230, 57, 70, 0.2); display: flex; align-items: center; justify-content: center;">728x90 Leaderboard</div></div>`;
             });
             console.log(`✅ Injected ${leaderboardAds.length} leaderboard ad(s)`);
         }
@@ -95,7 +95,7 @@ function injectAllAds() {
         const mediumAds = document.querySelectorAll('.ad-medium');
         if (ADS.medium.enabled && ADS.medium.code) {
             mediumAds.forEach(container => {
-                container.innerHTML = `<div style="width: 632px; height: 190px; border: 2px dashed #e63946; padding: 0; margin: 0 auto; display: flex; flex-direction: column;"><div style="flex: 1; display: flex; align-items: center; justify-content: center;">${ADS.medium.code}</div><div style="padding: 4px; font-size: 11px; color: #999; text-align: center; background-color: rgba(230, 57, 70, 0.05); border-top: 1px solid rgba(230, 57, 70, 0.2);">632x190 Medium</div></div>`;
+                container.innerHTML = `<div style="width: 632px; height: 190px; border: 2px dashed #e63946; padding: 0; margin: 0 auto; display: flex; flex-direction: column;"><div style="flex: 1; display: flex; align-items: center; justify-content: center;">${ADS.medium.code}</div><div style="padding: 8px 4px; font-size: 11px; color: #999; text-align: center; background-color: rgba(230, 57, 70, 0.05); border-top: 1px solid rgba(230, 57, 70, 0.2); display: flex; align-items: center; justify-content: center;">632x190 Medium</div></div>`;
             });
             console.log(`✅ Injected ${mediumAds.length} medium ad(s)`);
         }
@@ -104,7 +104,7 @@ function injectAllAds() {
         const smallAds = document.querySelectorAll('.ad-small');
         if (ADS.small.enabled && ADS.small.code) {
             smallAds.forEach(container => {
-                container.innerHTML = `<div style="width: 474px; height: 190px; border: 2px dashed #e63946; padding: 0; margin: 0 auto; display: flex; flex-direction: column;"><div style="flex: 1; display: flex; align-items: center; justify-content: center;">${ADS.small.code}</div><div style="padding: 4px; font-size: 11px; color: #999; text-align: center; background-color: rgba(230, 57, 70, 0.05); border-top: 1px solid rgba(230, 57, 70, 0.2);">474x190 Small</div></div>`;
+                container.innerHTML = `<div style="width: 474px; height: 190px; border: 2px dashed #e63946; padding: 0; margin: 0 auto; display: flex; flex-direction: column;"><div style="flex: 1; display: flex; align-items: center; justify-content: center;">${ADS.small.code}</div><div style="padding: 8px 4px; font-size: 11px; color: #999; text-align: center; background-color: rgba(230, 57, 70, 0.05); border-top: 1px solid rgba(230, 57, 70, 0.2); display: flex; align-items: center; justify-content: center;">474x190 Small</div></div>`;
             });
             console.log(`✅ Injected ${smallAds.length} small ad(s)`);
         }
@@ -113,7 +113,7 @@ function injectAllAds() {
         const vgaAds = document.querySelectorAll('.ad-vga');
         if (ADS.vga.enabled && ADS.vga.code) {
             vgaAds.forEach(container => {
-                container.innerHTML = `<div style="width: 308px; height: 286px; border: 2px dashed #e63946; padding: 0; margin: 0 auto; display: flex; flex-direction: column;"><div style="flex: 1; display: flex; align-items: center; justify-content: center;">${ADS.vga.code}</div><div style="padding: 4px; font-size: 11px; color: #999; text-align: center; background-color: rgba(230, 57, 70, 0.05); border-top: 1px solid rgba(230, 57, 70, 0.2);">308x286 VGA</div></div>`;
+                container.innerHTML = `<div style="width: 308px; height: 286px; border: 2px dashed #e63946; padding: 0; margin: 0 auto; display: flex; flex-direction: column;"><div style="flex: 1; display: flex; align-items: center; justify-content: center;">${ADS.vga.code}</div><div style="padding: 8px 4px; font-size: 11px; color: #999; text-align: center; background-color: rgba(230, 57, 70, 0.05); border-top: 1px solid rgba(230, 57, 70, 0.2); display: flex; align-items: center; justify-content: center;">308x286 VGA</div></div>`;
             });
             console.log(`✅ Injected ${vgaAds.length} VGA ad(s)`);
         }
@@ -122,7 +122,7 @@ function injectAllAds() {
         const billboardAds = document.querySelectorAll('.ad-billboard');
         if (ADS.billboard.enabled && ADS.billboard.code) {
             billboardAds.forEach(container => {
-                container.innerHTML = `<div style="width: 908px; height: 258px; border: 2px dashed #e63946; padding: 0; margin: 0 auto; display: flex; flex-direction: column;"><div style="flex: 1; display: flex; align-items: center; justify-content: center;">${ADS.billboard.code}</div><div style="padding: 4px; font-size: 11px; color: #999; text-align: center; background-color: rgba(230, 57, 70, 0.05); border-top: 1px solid rgba(230, 57, 70, 0.2);">908x258 Billboard</div></div>`;
+                container.innerHTML = `<div style="width: 908px; height: 258px; border: 2px dashed #e63946; padding: 0; margin: 0 auto; display: flex; flex-direction: column;"><div style="flex: 1; display: flex; align-items: center; justify-content: center;">${ADS.billboard.code}</div><div style="padding: 8px 4px; font-size: 11px; color: #999; text-align: center; background-color: rgba(230, 57, 70, 0.05); border-top: 1px solid rgba(230, 57, 70, 0.2); display: flex; align-items: center; justify-content: center;">908x258 Billboard</div></div>`;
             });
             console.log(`✅ Injected ${billboardAds.length} billboard ad(s)`);
         }
@@ -131,7 +131,7 @@ function injectAllAds() {
         const boxAds = document.querySelectorAll('.ad-box');
         if (ADS.box.enabled && ADS.box.code) {
             boxAds.forEach(container => {
-                container.innerHTML = `<div style="width: 300px; height: 250px; border: 2px dashed #e63946; padding: 0; margin: 0 auto; display: flex; flex-direction: column;"><div style="flex: 1; display: flex; align-items: center; justify-content: center;">${ADS.box.code}</div><div style="padding: 4px; font-size: 11px; color: #999; text-align: center; background-color: rgba(230, 57, 70, 0.05); border-top: 1px solid rgba(230, 57, 70, 0.2);">300x250 Box</div></div>`;
+                container.innerHTML = `<div style="width: 300px; height: 250px; border: 2px dashed #e63946; padding: 0; margin: 0 auto; display: flex; flex-direction: column;"><div style="flex: 1; display: flex; align-items: center; justify-content: center;">${ADS.box.code}</div><div style="padding: 8px 4px; font-size: 11px; color: #999; text-align: center; background-color: rgba(230, 57, 70, 0.05); border-top: 1px solid rgba(230, 57, 70, 0.2); display: flex; align-items: center; justify-content: center;">300x250 Box</div></div>`;
             });
             console.log(`✅ Injected ${boxAds.length} box ad(s)`);
         }
@@ -140,7 +140,7 @@ function injectAllAds() {
         const skyscraperAds = document.querySelectorAll('.ad-box-skyscraper');
         if (ADS.skyscraper.enabled && ADS.skyscraper.code) {
             skyscraperAds.forEach(container => {
-                container.innerHTML = `<div style="width: 160px; height: 600px; border: 2px dashed #e63946; padding: 0; margin: 0 auto; display: flex; flex-direction: column;"><div style="flex: 1; display: flex; align-items: center; justify-content: center;">${ADS.skyscraper.code}</div><div style="padding: 4px; font-size: 11px; color: #999; text-align: center; background-color: rgba(230, 57, 70, 0.05); border-top: 1px solid rgba(230, 57, 70, 0.2);">160x600 Skyscraper</div></div>`;
+                container.innerHTML = `<div style="width: 160px; height: 600px; border: 2px dashed #e63946; padding: 0; margin: 0 auto; display: flex; flex-direction: column;"><div style="flex: 1; display: flex; align-items: center; justify-content: center;">${ADS.skyscraper.code}</div><div style="padding: 8px 4px; font-size: 11px; color: #999; text-align: center; background-color: rgba(230, 57, 70, 0.05); border-top: 1px solid rgba(230, 57, 70, 0.2); display: flex; align-items: center; justify-content: center;">160x600 Skyscraper</div></div>`;
             });
             console.log(`✅ Injected ${skyscraperAds.length} skyscraper ad(s)`);
         }
