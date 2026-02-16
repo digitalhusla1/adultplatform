@@ -78,7 +78,7 @@ const ADS = {
 
 /**
  * Inject ads into all designated containers on the page
- * Preserves visual placeholder border even when ad code is added
+ * Wraps entire ad container with border matching ad size
  */
 function injectAllAds() {
     try {
@@ -86,8 +86,7 @@ function injectAllAds() {
         const leaderboardAds = document.querySelectorAll('.ad-leaderboard');
         if (ADS.leaderboard.enabled && ADS.leaderboard.code) {
             leaderboardAds.forEach(container => {
-                container.innerHTML = ADS.leaderboard.code + 
-                    '<div class="ad-border" style="border: 2px dashed #e63946; margin-top: 4px; padding: 4px; font-size: 11px; color: #999; text-align: center;">728x90 Leaderboard</div>';
+                container.innerHTML = `<div style="width: 728px; border: 2px dashed #e63946; padding: 0; margin: 0 auto; display: flex; flex-direction: column;"><div style="flex: 1; display: flex; align-items: center; justify-content: center;">${ADS.leaderboard.code}</div><div style="border-top: 2px dashed #e63946; padding: 4px; font-size: 11px; color: #999; text-align: center; background-color: rgba(230, 57, 70, 0.05);">728x90 Leaderboard</div></div>`;
             });
             console.log(`✅ Injected ${leaderboardAds.length} leaderboard ad(s)`);
         }
@@ -96,8 +95,7 @@ function injectAllAds() {
         const mediumAds = document.querySelectorAll('.ad-medium');
         if (ADS.medium.enabled && ADS.medium.code) {
             mediumAds.forEach(container => {
-                container.innerHTML = ADS.medium.code + 
-                    '<div class="ad-border" style="border: 2px dashed #e63946; margin-top: 4px; padding: 4px; font-size: 11px; color: #999; text-align: center;">632x190 Medium</div>';
+                container.innerHTML = `<div style="width: 632px; height: 190px; border: 2px dashed #e63946; padding: 0; margin: 0 auto; display: flex; flex-direction: column;"><div style="flex: 1; display: flex; align-items: center; justify-content: center;">${ADS.medium.code}</div><div style="border-top: 2px dashed #e63946; padding: 4px; font-size: 11px; color: #999; text-align: center; background-color: rgba(230, 57, 70, 0.05);">632x190 Medium</div></div>`;
             });
             console.log(`✅ Injected ${mediumAds.length} medium ad(s)`);
         }
@@ -106,8 +104,7 @@ function injectAllAds() {
         const smallAds = document.querySelectorAll('.ad-small');
         if (ADS.small.enabled && ADS.small.code) {
             smallAds.forEach(container => {
-                container.innerHTML = ADS.small.code + 
-                    '<div class="ad-border" style="border: 2px dashed #e63946; margin-top: 4px; padding: 4px; font-size: 11px; color: #999; text-align: center;">474x190 Small</div>';
+                container.innerHTML = `<div style="width: 474px; height: 190px; border: 2px dashed #e63946; padding: 0; margin: 0 auto; display: flex; flex-direction: column;"><div style="flex: 1; display: flex; align-items: center; justify-content: center;">${ADS.small.code}</div><div style="border-top: 2px dashed #e63946; padding: 4px; font-size: 11px; color: #999; text-align: center; background-color: rgba(230, 57, 70, 0.05);">474x190 Small</div></div>`;
             });
             console.log(`✅ Injected ${smallAds.length} small ad(s)`);
         }
@@ -116,8 +113,7 @@ function injectAllAds() {
         const vgaAds = document.querySelectorAll('.ad-vga');
         if (ADS.vga.enabled && ADS.vga.code) {
             vgaAds.forEach(container => {
-                container.innerHTML = ADS.vga.code + 
-                    '<div class="ad-border" style="border: 2px dashed #e63946; margin-top: 4px; padding: 4px; font-size: 11px; color: #999; text-align: center;">308x286 VGA</div>';
+                container.innerHTML = `<div style="width: 308px; height: 286px; border: 2px dashed #e63946; padding: 0; margin: 0 auto; display: flex; flex-direction: column;"><div style="flex: 1; display: flex; align-items: center; justify-content: center;">${ADS.vga.code}</div><div style="border-top: 2px dashed #e63946; padding: 4px; font-size: 11px; color: #999; text-align: center; background-color: rgba(230, 57, 70, 0.05);">308x286 VGA</div></div>`;
             });
             console.log(`✅ Injected ${vgaAds.length} VGA ad(s)`);
         }
@@ -126,8 +122,7 @@ function injectAllAds() {
         const billboardAds = document.querySelectorAll('.ad-billboard');
         if (ADS.billboard.enabled && ADS.billboard.code) {
             billboardAds.forEach(container => {
-                container.innerHTML = ADS.billboard.code + 
-                    '<div class="ad-border" style="border: 2px dashed #e63946; margin-top: 4px; padding: 4px; font-size: 11px; color: #999; text-align: center;">908x258 Billboard</div>';
+                container.innerHTML = `<div style="width: 908px; height: 258px; border: 2px dashed #e63946; padding: 0; margin: 0 auto; display: flex; flex-direction: column;"><div style="flex: 1; display: flex; align-items: center; justify-content: center;">${ADS.billboard.code}</div><div style="border-top: 2px dashed #e63946; padding: 4px; font-size: 11px; color: #999; text-align: center; background-color: rgba(230, 57, 70, 0.05);">908x258 Billboard</div></div>`;
             });
             console.log(`✅ Injected ${billboardAds.length} billboard ad(s)`);
         }
@@ -136,8 +131,7 @@ function injectAllAds() {
         const boxAds = document.querySelectorAll('.ad-box');
         if (ADS.box.enabled && ADS.box.code) {
             boxAds.forEach(container => {
-                container.innerHTML = ADS.box.code + 
-                    '<div class="ad-border" style="border: 2px dashed #e63946; margin-top: 4px; padding: 4px; font-size: 11px; color: #999; text-align: center;">300x250 Box</div>';
+                container.innerHTML = `<div style="width: 300px; height: 250px; border: 2px dashed #e63946; padding: 0; margin: 0 auto; display: flex; flex-direction: column;"><div style="flex: 1; display: flex; align-items: center; justify-content: center;">${ADS.box.code}</div><div style="border-top: 2px dashed #e63946; padding: 4px; font-size: 11px; color: #999; text-align: center; background-color: rgba(230, 57, 70, 0.05);">300x250 Box</div></div>`;
             });
             console.log(`✅ Injected ${boxAds.length} box ad(s)`);
         }
@@ -146,13 +140,12 @@ function injectAllAds() {
         const skyscraperAds = document.querySelectorAll('.ad-box-skyscraper');
         if (ADS.skyscraper.enabled && ADS.skyscraper.code) {
             skyscraperAds.forEach(container => {
-                container.innerHTML = ADS.skyscraper.code + 
-                    '<div class="ad-border" style="border: 2px dashed #e63946; margin-top: 4px; padding: 4px; font-size: 11px; color: #999; text-align: center;">160x600 Skyscraper</div>';
+                container.innerHTML = `<div style="width: 160px; height: 600px; border: 2px dashed #e63946; padding: 0; margin: 0 auto; display: flex; flex-direction: column;"><div style="flex: 1; display: flex; align-items: center; justify-content: center;">${ADS.skyscraper.code}</div><div style="border-top: 2px dashed #e63946; padding: 4px; font-size: 11px; color: #999; text-align: center; background-color: rgba(230, 57, 70, 0.05);">160x600 Skyscraper</div></div>`;
             });
             console.log(`✅ Injected ${skyscraperAds.length} skyscraper ad(s)`);
         }
 
-        console.log('✅ All ads injected successfully with visible borders');
+        console.log('✅ All ads injected successfully with sized borders');
     } catch (error) {
         console.error('❌ Error injecting ads:', error);
     }
