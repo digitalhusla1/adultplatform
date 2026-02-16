@@ -1,43 +1,81 @@
-# HDpornlove.com - Adult Tube Website
+# HDpornlove.com
 
-A mobile-friendly adult video streaming platform built with vanilla HTML, CSS, and JavaScript using the Eporner API v2.
+A serverless adult video streaming platform built with vanilla HTML, CSS, and JavaScript, integrating with the Eporner API v2.
 
 ## Features
 
-- **Mobile-Responsive Design** - Optimized for all devices (mobile, tablet, desktop)
-- **Eporner API Integration** - Dynamic video fetching and display
-- **Age Verification** - 18+ gate with localStorage-based bypass (24-hour)
-- **Content Categories** - 25+ predefined adult categories with searchable results
-- **Video Details Page** - Individual video pages with embed, stats, and related videos
-- **Contact & Newsletter Forms** - Netlify Forms integration with GDPR compliance
-- **Legal Compliance** - Terms of Use, Privacy Policy, 2257 Statement, DMCA procedures
-- **SEO Optimized** - Meta tags, sitemap.xml, robots.txt, lazy-loading
-- **Zero Backend Required** - Pure static site, deployable on Netlify, Vercel, GitHub Pages
+- 🔐 18+ age verification with localStorage
+- 📱 Responsive dark theme (mobile-first design)
+- 🔍 Search functionality with pagination
+- 🎬 Video categorization and browsing
+- 📊 SEO optimized with meta tags and JSON-LD
+- ✅ GDPR/DMCA/2257 compliant
+- ⚡ Zero build step - pure vanilla stack
+- 🚀 Netlify deployment ready
 
-## File Structure
+## Quick Start
+
+1. Clone the repository
+2. Open `index.html` in a web browser
+3. No build process needed - fully functional immediately
+
+## Project Structure
 
 ```
 AdultPlatform/
-├── index.html              # Home page with featured videos
-├── about.html              # About us page
-├── categories.html         # Browse categories
-├── contact.html            # Contact form (Netlify Forms)
-├── search.html             # Search results page
-├── video.html              # Video detail page (dynamic)
-├── terms.html              # Terms of Use
-├── privacy.html            # Privacy Policy
-├── 2257.html               # 2257 Compliance Statement
-├── dmca.html               # DMCA Takedown Information
-├── styles/
-│   └── main.css            # Main stylesheet (responsive, dark theme)
+├── index.html              # Home page
+├── search.html             # Search results
+├── video.html              # Video player page
+├── categories.html         # Category browsing
+├── about.html              # About page
+├── contact.html            # Contact form
+├── terms.html              # Terms of service
+├── privacy.html            # Privacy policy
+├── dmca.html               # DMCA procedure
+├── 2257.html               # 2257 compliance
 ├── scripts/
-│   └── main.js             # API integration, modals, forms
-├── assets/
-│   └── images/             # Logo and assets
-├── _redirects              # Netlify redirect rules
-├── robots.txt              # SEO robots file
-└── sitemap.xml             # XML sitemap for SEO
+│   └── main.js             # Core app logic
+├── styles/
+│   └── main.css            # Responsive styling
+└── assets/
+    └── images/             # Image assets
 ```
+
+## Configuration
+
+Customize behavior in `scripts/main.js`:
+
+```javascript
+const CONFIG = {
+    API_BASE: 'https://www.eporner.com/api/v2/',
+    THUMB_SIZE: 'medium',
+    VIDEOS_PER_PAGE: 20,
+    AGE_VERIFIED_EXPIRY: 30 * 24 * 60 * 60 * 1000,
+    REMOVED_CACHE_EXPIRY: 24 * 60 * 60 * 1000,
+};
+```
+
+## API Integration
+
+Uses **Eporner API v2** (no authentication required):
+- Search videos with filtering and sorting
+- Browse by popularity, rating, date
+- Fetch video details with metadata
+- 24-hour caching of removed video IDs
+
+## Deployment
+
+**Live Site:** https://hdpornlove.netlify.app/
+
+Hosted on Netlify with automatic deployment from git.
+
+## Browser Support
+
+- ✅ Chrome/Chromium (latest)
+- ✅ Firefox (latest)
+- ✅ Safari (latest)
+- ✅ Edge (latest)
+- ✅ IE11+ (with polyfills)
 
 ## Development
 
@@ -46,7 +84,7 @@ No build step required. All files are vanilla HTML/CSS/JavaScript.
 ### Running Locally
 
 1. Open `index.html` in a modern browser
-2. Or use a local server (e.g., `python -m http.server 8000`)
+2. Or use a local server: `python -m http.server 8000`
 3. Navigate to `http://localhost:8000`
 
 ### API Reference
