@@ -1,173 +1,9 @@
 /* ========================================
    HDpornlove.com - Main JavaScript
    API Integration, Age Verification, Forms
-   Cross-Browser Compatible (IE11+)
    ======================================== */
 
-/* BROWSER COMPATIBILITY POLYFILLS & DETECTION */
-// Feature detection with graceful fallbacks
-(function() {
-    'use strict';
-    
-    // Promise polyfill check
-    if (typeof Promise === 'undefined') {
-        console.warn('Promise not supported - some features may not work');
-        window.Promise = function() {}; // Minimal fallback
-    }
-    
-    // Fetch API availability check
-    if (!('fetch' in window)) {
-        console.warn('Fetch API not supported - XMLHttpRequest fallback will be used');
-        // Define fetch wrapper using XMLHttpRequest
-        window.fetch = function(url, options) {
-            return new Promise(function(resolve, reject) {
-                var xhr = new XMLHttpRequest();
-                var method = (options && options.method) || 'GET';
-                xhr.open(method, url, true);
-                xhr.onload = function() {
-                    resolve({
-                        ok: xhr.status >= 200 && xhr.status < 300,
-                        status: xhr.status,
-                        statusText: xhr.statusText,
-                        json: function() {
-                            try {
-                                return Promise.resolve(JSON.parse(xhr.responseText));
-                            } catch (e) {
-                                return Promise.reject(e);
-                            }
-                        }
-                    });
-                };
-                xhr.onerror = function() {
-                    reject(new Error('Network request failed'));
-                };
-                xhr.send(options && options.body || null);
-            });
-        };
-    }
-    
-    // Smooth scroll polyfill for older browsers
-    if (!('scrollBehavior' in document.documentElement.style)) {
-        HTMLElement.prototype.scrollIntoView = function(options) {
-            if (options && options.behavior === 'smooth') {
-                var start = this.offsetTop;
-                var change = window.innerHeight / 2;
-                var increment = change / 20;
-                var current = 0;
-                var animateScroll = function() {
-                    current += increment;
-                    window.scrollTo(0, start - change + current);
-                    if (current < change) {
-                        if (typeof requestAnimationFrame === 'function') {
-                            requestAnimationFrame(animateScroll);
-                        } else {
-                            setTimeout(animateScroll, 16);
-                        }
-                    }
-                };
-                animateScroll();
-            } else {
-                // Fallback to standard scrollIntoView
-                try {
-                    Element.prototype.scrollIntoView.call(this);
-                } catch (e) {
-                    window.scrollTo(0, this.offsetTop);
-                }
-            }
-        };
-    }
-    
-    // Object.assign polyfill for IE11
-    if (typeof Object.assign !== 'function') {
-        Object.assign = function(target) {
-            if (target === null || target === undefined) {
-                throw new TypeError('Cannot convert undefined or null to object');
-            }
-            var to = Object(target);
-            for (var index = 1; index < arguments.length; index++) {
-                var nextSource = arguments[index];
-                if (nextSource !== null && nextSource !== undefined) {
-                    for (var nextKey in nextSource) {
-                        if (Object.prototype.hasOwnProperty.call(nextSource, nextKey)) {
-                            to[nextKey] = nextSource[nextKey];
-                        }
-                    }
-                }
-            }
-            return to;
-        };
-    }
-    
-    // Array.from polyfill for IE11
-    if (!Array.from) {
-        Array.from = (function() {
-            var toStr = Object.prototype.toString;
-            var isCallable = function(fn) {
-                return typeof fn === 'function' || toStr.call(fn) === '[object Function]';
-            };
-            var toInteger = function(value) {
-                var number = Number(value);
-                if (isNaN(number)) return 0;
-                if (number === 0 || !isFinite(number)) return number;
-                return (number > 0 ? 1 : -1) * Math.floor(Math.abs(number));
-            };
-            var maxSafeInteger = Math.pow(2, 53) - 1;
-            var toLength = function(value) {
-                var len = toInteger(value);
-                return Math.min(Math.max(len, 0), maxSafeInteger);
-            };
-            
-            return function(arrayLike) {
-                var C = this;
-                if (arrayLike === null || arrayLike === undefined) {
-                    throw new TypeError('Array.from requires an array-like object');
-                }
-                var items = Object(arrayLike);
-                var mapFn = arguments.length > 1 ? arguments[1] : undefined;
-                var T;
-                if (typeof mapFn !== 'undefined') {
-                    if (!isCallable(mapFn)) throw new TypeError('Array.from: when provided, the second argument must be a function');
-                    T = arguments.length > 2 ? arguments[2] : undefined;
-                }
-                var len = toLength(items.length);
-                var A = isCallable(C) ? Object(new C(len)) : new Array(len);
-                var k = 0;
-                var kValue;
-                while (k < len) {
-                    kValue = items[k];
-                    if (typeof mapFn !== 'undefined') {
-                        A[k] = typeof T === 'undefined' ? mapFn(kValue, k) : mapFn.call(T, kValue, k);
-                    } else {
-                        A[k] = kValue;
-                    }
-                    k += 1;
-                }
-                A.length = len;
-                return A;
-            };
-        }());
-    }
-})();
-
-// User Agent Detection for browser-specific handling
-var userAgent = navigator.userAgent;
-var isIE = /MSIE|Trident/.test(userAgent);
-var isEdge = /Edge/.test(userAgent);
-var isChrome = /Chrome/.test(userAgent) && !/Chromium/.test(userAgent);
-var isFirefox = /Firefox/.test(userAgent);
-var isSafari = /Safari/.test(userAgent) && !/Chrome/.test(userAgent);
-var isOpera = /Opera|OPR/.test(userAgent);
-
-/* CUSTOMIZATION GUIDE:
-   1. API_BASE: Change if using a different Eporner API endpoint
-   2. VIDEOS_PER_PAGE: Adjust pagination size (1-1000)
-   3. THUMB_SIZE: Change to 'small' or 'big' for different thumbnail sizes
-   4. AGE_VERIFIED_EXPIRY: Change time in milliseconds for age verification duration
-   5. REMOVED_CACHE_EXPIRY: Change how often to refresh removed videos list
-*/
-
 // ========== CONFIGURATION ==========
-/* Central configuration object - EDIT THESE SETTINGS */
 const CONFIG = {
     API_BASE: 'https://www.eporner.com/api/v2/',  // Eporner API endpoint
     THUMB_SIZE: 'medium',                           // Thumbnail size: small, medium, big
@@ -175,22 +11,20 @@ const CONFIG = {
     REMOVED_CACHE_EXPIRY: 24 * 60 * 60 * 1000,      // 24 hours - how often to refresh removed list
     AGE_VERIFIED_KEY: 'age_verified',               // LocalStorage key for age verification
     AGE_VERIFIED_EXPIRY: 30 * 24 * 60 * 60 * 1000,  // 30 days - how long verification lasts
-    VIDEOS_PER_PAGE: 20,                            // Videos per page - reduced from 24 for mobile optimization
-    MOBILE_VIDEOS_PER_PAGE: 12,                     // Fewer videos on mobile for faster loading
+    VIDEOS_PER_PAGE: 20,                            // Videos per page
 };
 
 // ========== PAGE STATE ==========
-/* Track pagination state for each section */
 let currentPageSearch = 1;
 let currentPageMostViewed = 1;
 let currentPageTopRated = 1;
 let currentPageNewest = 1;
 
-/* Performance: In-memory cache for removed video IDs (eliminates 3s blocking waits) */
-let _removedIdsCache = null;        // Set of removed IDs for O(1) lookups
-let _removedIdsFetchPromise = null; // Singleton promise to deduplicate concurrent requests
+/* In-memory cache for removed video IDs */
+let _removedIdsCache = null;
+let _removedIdsFetchPromise = null;
 
-// Pre-populate cache from localStorage synchronously at load time (instant, non-blocking)
+// Pre-populate cache from localStorage at load time
 try {
     const _cachedIds = localStorage.getItem(CONFIG.REMOVED_CACHE_KEY);
     const _cacheTime = localStorage.getItem(CONFIG.REMOVED_CACHE_KEY + '_time');
@@ -198,26 +32,9 @@ try {
         const _age = Date.now() - parseInt(_cacheTime);
         if (_age < CONFIG.REMOVED_CACHE_EXPIRY) {
             _removedIdsCache = new Set(JSON.parse(_cachedIds));
-            console.log(`\u26A1 Pre-loaded ${_removedIdsCache.size} removed IDs from cache`);
         }
     }
 } catch (e) { /* Ignore cache read errors */ }
-
-/* Mobile detection and optimization */
-const isMobileDevice = () => {
-    return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-};
-
-const isTabletDevice = () => {
-    return isMobileDevice() && window.innerWidth >= 768;
-};
-
-const getOptimalVideosPerPage = () => {
-    if (isMobileDevice() && !isTabletDevice()) {
-        return CONFIG.MOBILE_VIDEOS_PER_PAGE;
-    }
-    return CONFIG.VIDEOS_PER_PAGE;
-};
 
 // ========== API FUNCTIONS ==========
 /* These functions interact with the Eporner API v2 */
@@ -268,26 +85,21 @@ async function searchVideos(query = 'all', page = 1) {
         
         // Validate response structure
         if (!data.videos || !Array.isArray(data.videos)) {
-            console.warn('Unexpected API response structure:', data);
             return { ...data, videos: [] };
         }
 
         // PERFORMANCE: Instant removed IDs filtering using in-memory Set (non-blocking, 0ms)
         if (_removedIdsCache && _removedIdsCache.size > 0) {
             data.videos = data.videos.filter(v => v && v.id && !_removedIdsCache.has(v.id));
-            console.log(`Search "${query}" page ${page}: ${data.videos.length} videos after filtering`);
         } else {
-            console.log(`Search "${query}" page ${page}: ${data.videos.length} videos (cache warming)`);
         }
 
         return data;
 
     } catch (error) {
         if (error.name === 'AbortError') {
-            console.error('searchVideos Timeout: API request took too long');
             throw new Error('API request timeout. Please try again.');
         }
-        console.error('searchVideos Error:', error.message);
         throw error;
     }
 }
@@ -326,12 +138,9 @@ async function getMostViewedVideos(page = 1) {
         if (_removedIdsCache && _removedIdsCache.size > 0) {
             data.videos = data.videos.filter(v => v && v.id && !_removedIdsCache.has(v.id));
         }
-
-        console.log(`Most viewed page ${page}: ${data.videos.length} videos found`);
         return data;
 
     } catch (error) {
-        console.error('getMostViewedVideos Error:', error.message);
         throw error;
     }
 }
@@ -370,12 +179,9 @@ async function getTopRatedVideos(page = 1) {
         if (_removedIdsCache && _removedIdsCache.size > 0) {
             data.videos = data.videos.filter(v => v && v.id && !_removedIdsCache.has(v.id));
         }
-
-        console.log(`Top rated page ${page}: ${data.videos.length} videos found`);
         return data;
 
     } catch (error) {
-        console.error('getTopRatedVideos Error:', error.message);
         throw error;
     }
 }
@@ -414,12 +220,9 @@ async function getNewestVideos(page = 1) {
         if (_removedIdsCache && _removedIdsCache.size > 0) {
             data.videos = data.videos.filter(v => v && v.id && !_removedIdsCache.has(v.id));
         }
-
-        console.log(`Newest videos page ${page}: ${data.videos.length} videos found`);
         return data;
 
     } catch (error) {
-        console.error('getNewestVideos Error:', error.message);
         throw error;
     }
 }
@@ -437,12 +240,8 @@ async function getVideo(videoId) {
     try {
         // Validate video ID format
         if (!videoId || typeof videoId !== 'string' || videoId.length !== 11) {
-            console.error(`❌ Invalid video ID format. Got: "${videoId}" (length: ${videoId ? videoId.length : 'null'})`);
             throw new Error('Invalid video ID format');
         }
-
-        console.log(`🔍 Fetching video: ${videoId}`);
-
         // Build API URL
         const url = new URL(`${CONFIG.API_BASE}video/id/`);
         url.searchParams.append('id', videoId);
@@ -464,25 +263,19 @@ async function getVideo(videoId) {
         
         // API returns empty array if video is removed or doesn't exist
         if (Array.isArray(data) && data.length === 0) {
-            console.warn(`⚠️  Video ${videoId} not found (empty array response)`);
             return null;
         }
 
         // PERFORMANCE: Instant removed check using in-memory Set (O(1) lookup, 0ms)
         if (_removedIdsCache && data.id && _removedIdsCache.has(data.id)) {
-            console.warn(`⚠️  Video ${videoId} is in removed list`);
             return null;
         }
-
-        console.log('✅ Video data retrieved successfully');
         return data;
 
     } catch (error) {
         if (error.name === 'AbortError') {
-            console.error('getVideo Timeout: API request took too long');
             throw new Error('Video loading timeout. Please try again.');
         }
-        console.error('getVideo Error:', error.message);
         throw error;
     }
 }
@@ -515,7 +308,6 @@ async function getRemovedIds() {
         const age = Date.now() - parseInt(cacheTime);
         if (age < CONFIG.REMOVED_CACHE_EXPIRY) {
             _removedIdsCache = new Set(JSON.parse(cached));
-            console.log(`Using cached removed IDs (${_removedIdsCache.size} IDs, ${Math.round(age / 60000)}m old)`);
             return _removedIdsCache;
         }
     }
@@ -523,7 +315,6 @@ async function getRemovedIds() {
     // 4. Fetch from API (deduplicated - single in-flight request shared by all callers)
     _removedIdsFetchPromise = (async () => {
         try {
-            console.log('Fetching fresh removed video IDs from API...');
             const url = `${CONFIG.API_BASE}video/removed/?format=json`;
             const controller = new AbortController();
             const timeout = setTimeout(() => controller.abort(), 10000);
@@ -549,20 +340,15 @@ async function getRemovedIds() {
 
             // Cache to memory as Set for O(1) lookups
             _removedIdsCache = new Set(ids);
-            console.log(`Cached ${_removedIdsCache.size} removed video IDs (in-memory Set)`);
             return _removedIdsCache;
 
         } catch (error) {
-            console.warn('getRemovedIds Error, using fallback:', error.message);
-
             if (cached) {
                 _removedIdsCache = new Set(JSON.parse(cached));
-                console.log('Using expired cache as fallback');
                 return _removedIdsCache;
             }
 
             _removedIdsCache = new Set();
-            console.warn('No cache available, returning empty removed set');
             return _removedIdsCache;
         } finally {
             _removedIdsFetchPromise = null;
@@ -591,7 +377,6 @@ function isAgeVerified() {
             return true;
         } else {
             // Clear expired verification
-            console.log('Age verification expired');
             localStorage.removeItem(CONFIG.AGE_VERIFIED_KEY);
             localStorage.removeItem(CONFIG.AGE_VERIFIED_KEY + '_time');
         }
@@ -606,7 +391,6 @@ function isAgeVerified() {
 function setAgeVerified() {
     localStorage.setItem(CONFIG.AGE_VERIFIED_KEY, 'true');
     localStorage.setItem(CONFIG.AGE_VERIFIED_KEY + '_time', Date.now().toString());
-    console.log('Age verification set - valid for 30 days');
 }
 
 /**
@@ -615,11 +399,9 @@ function setAgeVerified() {
 function showAgeModal() {
     const modal = document.getElementById('ageModal');
     if (!modal) {
-        console.error('Age modal element not found');
         return;
     }
     modal.classList.add('show');
-    console.log('Age verification modal shown');
 }
 
 /**
@@ -647,20 +429,16 @@ function initAgeVerification() {
         ageYesBtn.addEventListener('click', () => {
             setAgeVerified();
             hideAgeModal();
-            console.log('User verified age');
         });
     } else {
-        console.warn('Age "Yes" button not found');
     }
 
     // Setup "No" button handler
     if (ageNoBtn) {
         ageNoBtn.addEventListener('click', () => {
-            console.log('User declined age verification - redirecting');
             window.location.href = 'https://www.google.com';
         });
     } else {
-        console.warn('Age "No" button not found');
     }
 
     // Show modal if not verified
@@ -684,7 +462,6 @@ function createVideoCard(video) {
     try {
         // Validate video object
         if (!video || !video.id) {
-            console.warn('Invalid video object:', video);
             return '';
         }
 
@@ -730,7 +507,6 @@ function createVideoCard(video) {
             </div>
         `;
     } catch (error) {
-        console.error('Error creating video card:', error);
         return '';
     }
 }
@@ -743,7 +519,6 @@ function createVideoCard(video) {
 function renderVideos(videos, containerId) {
     const container = document.getElementById(containerId);
     if (!container) {
-        console.error(`Container "${containerId}" not found`);
         return;
     }
 
@@ -761,10 +536,7 @@ function renderVideos(videos, containerId) {
             .join('');
 
         container.innerHTML = html || '<div class="no-results"><p>No videos available.</p></div>';
-        console.log(`Rendered ${videos.length} videos`);
-
     } catch (error) {
-        console.error('renderVideos Error:', error);
         container.innerHTML = '<div class="no-results"><p>Error loading videos.</p></div>';
     }
 }
@@ -775,79 +547,13 @@ function renderVideos(videos, containerId) {
  */
 function goToVideo(videoId) {
     try {
-        console.log('🎬 goToVideo called with ID:', videoId);
-        
         if (!videoId) {
-            console.error('❌ Invalid video ID');
             return;
         }
         
         const url = `video.html?id=${encodeURIComponent(videoId)}`;
-        console.log('🔗 Navigating to:', url);
         window.location.href = url;
     } catch (error) {
-        console.error('❌ goToVideo Error:', error);
-    }
-}
-
-/**
- * Share video to Twitter/X, Reddit, and Telegram
- * @param {string} videoId - Video ID from API
- * @param {string} videoTitle - Video title for sharing
- */
-function shareVideo(videoId, videoTitle) {
-    try {
-        // Build video URL
-        const slug = videoTitle
-            .toLowerCase()
-            .replace(/[^a-z0-9]/gi, '-')
-            .replace(/-+/g, '-')
-            .substring(0, 80);
-        const videoUrl = `https://hdpornlove.com/watch/${videoId}/${slug}/`;
-        const shortTitle = videoTitle.substring(0, 70) + (videoTitle.length > 70 ? '...' : '');
-
-        // Twitter/X share URL with NSFW hashtags
-        const twitterText = `Check out this hot new HD video - ${shortTitle} #NSFW #AdultContent #HDpornlove`;
-        const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(twitterText)}&url=${encodeURIComponent(videoUrl)}`;
-
-        // Reddit share URL with [NSFW] tag
-        const redditTitle = `${shortTitle} [NSFW]`;
-        const redditUrl = `https://www.reddit.com/submit?url=${encodeURIComponent(videoUrl)}&title=${encodeURIComponent(redditTitle)}`;
-
-        // Telegram share
-        const telegramText = `Check this hot video: ${shortTitle}`;
-        const telegramUrl = `https://t.me/share/url?url=${encodeURIComponent(videoUrl)}&text=${encodeURIComponent(telegramText)}`;
-
-        // Create share modal
-        const modal = document.createElement('div');
-        modal.className = 'share-modal';
-        modal.innerHTML = `
-            <div class="share-modal-content">
-                <h3>🔗 Share This Video</h3>
-                <p>${escapeHtml(videoTitle)}</p>
-                <div class="share-options">
-                    <a href="${twitterUrl}" target="_blank" rel="noopener noreferrer" class="share-option twitter" title="Share on Twitter/X">
-                        <span>𝕏 Twitter</span>
-                    </a>
-                    <a href="${redditUrl}" target="_blank" rel="noopener noreferrer" class="share-option reddit" title="Share on Reddit">
-                        <span>🔗 Reddit</span>
-                    </a>
-                    <a href="${telegramUrl}" target="_blank" rel="noopener noreferrer" class="share-option telegram" title="Share on Telegram">
-                        <span>✈️ Telegram</span>
-                    </a>
-                </div>
-                <button class="share-close" onclick="this.closest('.share-modal').remove()">Close</button>
-            </div>
-        `;
-        modal.onclick = (e) => {
-            if (e.target === modal) modal.remove();
-        };
-
-        document.body.appendChild(modal);
-        console.log('Share modal opened for video:', videoTitle);
-    } catch (error) {
-        console.error('Error sharing video:', error);
-        alert('Unable to open share dialog. Please try again.');
     }
 }
 
@@ -863,7 +569,6 @@ function formatViews(views) {
         if (views >= 1000) return (views / 1000).toFixed(1) + 'K';
         return views.toString();
     } catch (error) {
-        console.error('formatViews Error:', error);
         return views?.toString() || '0';
     }
 }
@@ -881,7 +586,6 @@ function escapeHtml(text) {
         div.textContent = text;
         return div.innerHTML;
     } catch (error) {
-        console.error('escapeHtml Error:', error);
         return '';
     }
 }
@@ -896,7 +600,6 @@ function escapeHtml(text) {
 function initSearchForm() {
     const searchForm = document.getElementById('searchForm');
     if (!searchForm) {
-        console.warn('Search form not found on this page');
         return;
     }
 
@@ -906,7 +609,6 @@ function initSearchForm() {
             const searchInput = document.getElementById('searchInput');
             
             if (!searchInput) {
-                console.error('Search input not found');
                 return;
             }
 
@@ -921,7 +623,6 @@ function initSearchForm() {
             // Navigate to search results
             window.location.href = `search.html?query=${encodeURIComponent(query)}`;
         } catch (error) {
-            console.error('Search form error:', error);
         }
     });
 }
@@ -939,7 +640,6 @@ function getUrlParam(name) {
         const value = params.get(name);
         return value || null;
     } catch (error) {
-        console.error('getUrlParam Error:', error);
         return null;
     }
 }
@@ -953,7 +653,6 @@ function getUrlParam(name) {
 async function initHomePage() {
     const container = document.getElementById('featuredVideos');
     if (!container) {
-        console.log('Not on home page');
         return;
     }
 
@@ -970,31 +669,24 @@ async function initHomePage() {
 
         // PERFORMANCE OPTIMIZATION: Load all 4 sections IN PARALLEL instead of sequential
         // This reduces load time from ~8 seconds to ~2 seconds (75% improvement)
-        console.log('⏱️  Starting parallel video loading for 4 sections...');
         const startTime = performance.now();
 
         const [trendingData, viewedData, ratedData, newestData] = await Promise.all([
             searchVideos('all', 1).catch(err => {
-                console.error('Error loading trending videos:', err);
                 return { videos: [], page: 1, total_pages: 0 };
             }),
             getMostViewedVideos(1).catch(err => {
-                console.error('Error loading most viewed videos:', err);
                 return { videos: [], page: 1, total_pages: 0 };
             }),
             getTopRatedVideos(1).catch(err => {
-                console.error('Error loading top rated videos:', err);
                 return { videos: [], page: 1, total_pages: 0 };
             }),
             getNewestVideos(1).catch(err => {
-                console.error('Error loading newest videos:', err);
                 return { videos: [], page: 1, total_pages: 0 };
             })
         ]);
 
         const endTime = performance.now();
-        console.log(`✅ All 4 sections loaded in ${(endTime - startTime).toFixed(0)}ms (parallel)`);
-
         // Render all sections
         renderVideos(trendingData.videos, 'featuredVideos');
         setupPagination(trendingData, 'all');
@@ -1007,12 +699,8 @@ async function initHomePage() {
 
         renderVideos(newestData.videos, 'newestVideos');
         setupTrendingPagination(newestData, 'newest');
-
-        console.log('✅ Home page initialized successfully - all sections rendered');
-
     } catch (error) {
         container.innerHTML = '<div class="no-results"><p>⚠️ Error loading videos. Please refresh the page.</p></div>';
-        console.error('Home page error:', error);
     }
 }
 
@@ -1023,15 +711,10 @@ async function initHomePage() {
  * Initialize search results page
  */
 async function initSearchPage() {
-    console.log('initSearchPage called!');
-    
     // Get search query from URL
     const query = getUrlParam('query');
-    console.log('Query from URL:', query);
-    
     // Redirect if no query
     if (!query) {
-        console.warn('No search query provided');
         window.location.href = 'index.html';
         return;
     }
@@ -1043,16 +726,11 @@ async function initSearchPage() {
     }
 
     const container = document.getElementById('searchVideos');
-    console.log('Search container found:', !!container);
-    
     if (!container) {
-        console.log('Not on search page');
         return;
     }
 
     try {
-        console.log('Starting search for:', query);
-        
         // Update page title
         const title = document.getElementById('searchTitle');
         if (title) {
@@ -1063,12 +741,9 @@ async function initSearchPage() {
         container.innerHTML = '<div class="loading">Searching for videos...</div>';
 
         // Fetch search results
-        console.log('⏱️ Calling searchVideos...');
         const startTime = performance.now();
         const data = await searchVideos(query, 1);
         const endTime = performance.now();
-        console.log(`✅ Search results received in ${(endTime - startTime).toFixed(0)}ms:`, data);
-        
         // Update results info
         const resultsInfo = document.getElementById('resultsInfo');
         if (resultsInfo) {
@@ -1082,14 +757,9 @@ async function initSearchPage() {
         }
 
         // Render videos
-        console.log('Rendering videos...');
         renderVideos(data.videos, 'searchVideos');
         setupPagination(data, query);
-
-        console.log(`Search page initialized for query: ${query}`);
-
     } catch (error) {
-        console.error('Search page error:', error);
         container.innerHTML = '<div class="no-results"><p>⚠️ Error loading search results. ' + error.message + '</p></div>';
     }
 }
@@ -1105,7 +775,6 @@ async function initSearchPage() {
 function injectVideoSchema(video) {
     try {
         if (!video || !video.id) {
-            console.warn('Cannot inject schema: invalid video object');
             return;
         }
 
@@ -1169,10 +838,7 @@ function injectVideoSchema(video) {
         schemaScript.setAttribute('data-video-schema', 'true');
         schemaScript.textContent = JSON.stringify(schema);
         document.head.appendChild(schemaScript);
-
-        console.log('✅ VideoObject schema injected successfully');
     } catch (error) {
-        console.error('Error injecting video schema:', error);
     }
 }
 
@@ -1184,13 +850,8 @@ function injectVideoSchema(video) {
  */
 async function initVideoPage() {
     const videoId = getUrlParam('id');
-    
-    console.log('=== VIDEO PAGE INIT ===');
-    console.log('Video ID:', videoId);
-    
     // Validate video ID
     if (!videoId) {
-        console.error('❌ No video ID provided in URL');
         window.location.href = 'index.html';
         return;
     }
@@ -1209,7 +870,6 @@ async function initVideoPage() {
         
         // Check if video was found
         if (!video || !video.id) {
-            console.error('❌ Video not found or removed:', videoId);
             document.getElementById('noVideo').style.display = 'block';
             container.style.display = 'none';
             return;
@@ -1278,7 +938,6 @@ async function initVideoPage() {
                         .join('');
                 }
             } catch (error) {
-                console.error('Error processing tags:', error);
             }
         }
 
@@ -1292,12 +951,11 @@ async function initVideoPage() {
                         navigator.share({
                             title: video.title,
                             url: url,
-                        }).catch(err => console.log('Share cancelled:', err));
+                        }).catch(() => {});
                     } else {
                         alert('Share this link: ' + url);
                     }
                 } catch (error) {
-                    console.error('Share error:', error);
                 }
             });
         }
@@ -1309,21 +967,16 @@ async function initVideoPage() {
                 try {
                     window.location.href = `contact.html?subject=report&video=${encodeURIComponent(videoId)}`;
                 } catch (error) {
-                    console.error('Report error:', error);
                 }
             });
         }
 
         // Load related videos ASYNCHRONOUSLY (don't await - let them load in background)
         // This prevents blocking the main video from displaying
-        loadRelatedVideos(video.keywords).catch(err => console.warn('Related videos failed:', err));
-
-        console.log(`Video page loaded: ${videoId}`);
-
+        loadRelatedVideos(video.keywords).catch(() => {});
     } catch (error) {
         document.getElementById('noVideo').style.display = 'block';
         container.style.display = 'none';
-        console.error('Video page error:', error);
     }
 }
 
@@ -1337,13 +990,11 @@ async function loadRelatedVideos(keywords) {
     const relatedVideosContainer = document.getElementById('relatedVideos');
     
     if (!relatedSection || !relatedVideosContainer) {
-        console.warn('Related videos section elements not found in DOM');
         return;
     }
 
     // If no keywords, hide related section
     if (!keywords || keywords.trim().length === 0) {
-        console.log('No keywords available for related videos');
         relatedSection.style.display = 'none';
         return;
     }
@@ -1356,13 +1007,9 @@ async function loadRelatedVideos(keywords) {
             .filter(k => k.length > 0);
 
         if (keywordList.length === 0) {
-            console.log('No valid keywords for related videos');
             relatedSection.style.display = 'none';
             return;
         }
-
-        console.log(`🔍 Searching for related videos using keywords: ${keywordList.slice(0, 3).join(', ')}`);
-
         // PERFORMANCE OPTIMIZATION: Try first 3-5 keywords in PARALLEL instead of sequential
         // This reduces waiting time by 60-70%
         const parallelKeywords = keywordList.slice(0, 5);
@@ -1381,7 +1028,6 @@ async function loadRelatedVideos(keywords) {
         if (successResult) {
             data = successResult.data;
             usedKeyword = successResult.keyword;
-            console.log(`Found ${data.videos.length} videos for keyword: "${usedKeyword}"`);
         } else {
             // Fallback: try remaining keywords sequentially
             for (const keyword of keywordList.slice(5)) {
@@ -1389,11 +1035,9 @@ async function loadRelatedVideos(keywords) {
                     data = await searchVideos(keyword, 1);
                     if (data.videos && data.videos.length > 0) {
                         usedKeyword = keyword;
-                        console.log(`Found ${data.videos.length} videos for fallback keyword: "${keyword}"`);
                         break;
                     }
                 } catch (error) {
-                    console.warn(`Error searching for keyword "${keyword}":`, error.message);
                     continue;
                 }
             }
@@ -1401,13 +1045,10 @@ async function loadRelatedVideos(keywords) {
 
         // If no keywords yielded results, try generic fallback search
         if (!data || !data.videos || data.videos.length === 0) {
-            console.log('⚠️ No results for specific keywords, trying fallback search...');
             try {
                 data = await searchVideos('all', 1);
                 usedKeyword = 'all';
-                console.log(`Fallback search found ${data.videos ? data.videos.length : 0} videos`);
             } catch (error) {
-                console.error('Fallback search also failed:', error);
                 relatedSection.style.display = 'none';
                 return;
             }
@@ -1415,19 +1056,15 @@ async function loadRelatedVideos(keywords) {
 
         // Display related videos if any were found
         if (data && data.videos && data.videos.length > 0) {
-            console.log(`📺 Displaying related videos (searched with: "${usedKeyword}")`);
             relatedSection.style.display = 'block';
             
             // Show first 8 related videos
             renderVideos(data.videos.slice(0, 8), 'relatedVideos');
-            console.log(`✅ Related videos loaded successfully`);
         } else {
-            console.log('No videos found - hiding related section');
             relatedSection.style.display = 'none';
         }
 
     } catch (error) {
-        console.error('❌ Unexpected error in loadRelatedVideos:', error);
         relatedSection.style.display = 'none';
         // Don't block page if related videos fail
     }
@@ -1443,7 +1080,6 @@ function searchTag(tag) {
         if (!cleanTag) return;
         window.location.href = `search.html?query=${encodeURIComponent(cleanTag)}`;
     } catch (error) {
-        console.error('Tag search error:', error);
     }
 }
 
@@ -1493,11 +1129,7 @@ function setupPagination(data, query) {
                 nextBtn.style.display = 'none';
             }
         }
-
-        console.log(`Pagination set: page ${currentPage}`);
-
     } catch (error) {
-        console.error('setupPagination Error:', error);
     }
 }
 
@@ -1535,7 +1167,6 @@ function setupTrendingPagination(data, sectionType) {
                 apiFunction = getNewestVideos;
                 break;
             default:
-                console.error('Unknown section type:', sectionType);
                 return;
         }
 
@@ -1570,11 +1201,7 @@ function setupTrendingPagination(data, sectionType) {
                 nextBtn.style.display = 'none';
             }
         }
-
-        console.log(`${sectionType} pagination set: page ${currentPage}`);
-
     } catch (error) {
-        console.error('setupTrendingPagination Error:', error);
     }
 }
 
@@ -1594,7 +1221,6 @@ async function goToTrendingPage(sectionType, page, apiFunction, containerId) {
 
         const container = document.getElementById(containerId);
         if (!container) {
-            console.error(`Container "${containerId}" not found`);
             return;
         }
 
@@ -1610,15 +1236,11 @@ async function goToTrendingPage(sectionType, page, apiFunction, containerId) {
         
         // Scroll to top of section
         container.parentElement.scrollIntoView({ behavior: 'smooth' });
-
-        console.log(`${sectionType} navigated to page ${page}`);
-
     } catch (error) {
         const container = document.getElementById(containerId);
         if (container) {
             container.innerHTML = '<div class="no-results"><p>⚠️ Error loading page. Please try again.</p></div>';
         }
-        console.error(`goToTrendingPage error (${sectionType}):`, error);
     }
 }
 
@@ -1639,7 +1261,6 @@ async function goToPage(page) {
         const container = featurContainer || searchContainer;
 
         if (!container) {
-            console.error('Video container not found');
             return;
         }
 
@@ -1656,15 +1277,11 @@ async function goToPage(page) {
         
         // Scroll to top of results
         window.scrollTo({ top: 0, behavior: 'smooth' });
-
-        console.log(`Navigated to page ${page}`);
-
     } catch (error) {
         const container = document.getElementById('featuredVideos') || document.getElementById('searchVideos');
         if (container) {
             container.innerHTML = '<div class="no-results"><p>⚠️ Error loading page. Please try again.</p></div>';
         }
-        console.error('Pagination error:', error);
     }
 }
 
@@ -1680,23 +1297,18 @@ function initForms() {
         // No additional setup needed - just ensure forms have proper attributes
         
         const forms = document.querySelectorAll('form');
-        console.log(`Initialized ${forms.length} form(s)`);
-
         forms.forEach(form => {
             // Add form submit logging (optional)
             form.addEventListener('submit', (e) => {
-                console.log(`Form submitted: ${form.name || form.id || 'unnamed'}`);
             });
 
             // Setup form validation if needed
             form.addEventListener('invalid', (e) => {
                 e.preventDefault();
-                console.warn('Form validation failed:', e.target);
             }, true);
         });
 
     } catch (error) {
-        console.error('Form initialization error:', error);
     }
 }
 
@@ -1711,7 +1323,7 @@ function initPage() {
     try {
         // PERFORMANCE: Preload removed video IDs in background so first API call doesn't block
         // This loads from cache instantly or fetches fresh copy without blocking page init
-        getRemovedIds().catch(err => console.warn('Removed IDs prefetch failed:', err));
+        getRemovedIds().catch(() => {});
 
         // Initialize on all pages
         initMenuToggle();
@@ -1731,11 +1343,7 @@ function initPage() {
         } else if (path.includes('video')) {
             initVideoPage();
         }
-
-        console.log('Page initialized');
-
     } catch (error) {
-        console.error('Fatal initialization error:', error);
     }
 }
 
@@ -1788,109 +1396,10 @@ function initMenuToggle() {
     });
 }
 
-/**
- * Debounce function - delays function call until user stops triggering it
- * @param {Function} func - Function to debounce
- * @param {number} wait - Milliseconds to wait
- * @returns {Function} - Debounced function
- * 
-   * USAGE: const debouncedSearch = debounce(searchVideos, 300);
- * Useful for search input to avoid too many API calls
- */
-function debounce(func, wait) {
-    try {
-        let timeout;
-        return function executedFunction(...args) {
-            const later = () => {
-                clearTimeout(timeout);
-                func(...args);
-            };
-            clearTimeout(timeout);
-            timeout = setTimeout(later, wait);
-        };
-    } catch (error) {
-        console.error('Debounce error:', error);
-        return func;
-    }
-}
+// ========== ERROR HANDLING ==========
 
-/**
- * Check if element is currently visible in viewport
- * @param {Element} element - DOM element to check
- * @returns {boolean} - True if element is in viewport
- * 
- * USAGE: Useful for lazy loading and infinite scroll
- */
-function isInViewport(element) {
-    try {
-        if (!element) return false;
-        const rect = element.getBoundingClientRect();
-        return (
-            rect.top >= 0 &&
-            rect.left >= 0 &&
-            rect.bottom <= (window.innerHeight || document.documentElement.clientHeight) &&
-            rect.right <= (window.innerWidth || document.documentElement.clientWidth)
-        );
-    } catch (error) {
-        console.error('isInViewport error:', error);
-        return false;
-    }
-}
-
-// ========== PERFORMANCE OPTIMIZATIONS ==========
-/* Lazy load images for better performance */
-
-/**
- * IntersectionObserver for lazy loading images
- * Images only load when they come into viewport
- * Improves page load performance and reduces bandwidth
- */
-let observer;
-
-try {
-    observer = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-            // When image enters viewport
-            if (entry.isIntersecting && entry.target.tagName === 'IMG') {
-                const img = entry.target;
-                
-                // Load actual image from data-src
-                if (img.dataset.src) {
-                    img.src = img.dataset.src;
-                    img.removeAttribute('data-src');
-                    observer.unobserve(img);
-                }
-            }
-        });
-    }, {
-        // Start loading slightly before image reaches viewport
-        rootMargin: '50px'
-    });
-
-    // Observe all images with data-src attribute
-    document.addEventListener('DOMContentLoaded', () => {
-        const lazyImages = document.querySelectorAll('img[data-src]');
-        lazyImages.forEach(img => {
-            observer.observe(img);
-        });
-    });
-
-} catch (error) {
-    console.warn('IntersectionObserver not supported, lazy loading disabled:', error);
-}
-
-// ========== ERROR LOGGING ==========
-/* Catch global errors and log them */
-
-window.addEventListener('error', (event) => {
-    console.error('Global JavaScript error:', event.error);
-});
-
-window.addEventListener('unhandledrejection', (event) => {
-    console.error('Unhandled promise rejection:', event.reason);
-});
-
-console.log('HDpornlove.com scripts loaded and ready - All browsers supported');
+window.addEventListener('error', (event) => {});
+window.addEventListener('unhandledrejection', (event) => {});
 
 // ========== VIDEO HOVER PREVIEW ==========
 /* Cycle through video thumbnails on mouse hover to simulate video preview */
@@ -1941,7 +1450,6 @@ console.log('HDpornlove.com scripts loaded and ready - All browsers supported');
                 img.src = thumbs[thumbIndex];
             }, 600);
         } catch (e) {
-            console.warn('Preview start error:', e);
         }
     }
 
@@ -1990,7 +1498,5 @@ console.log('HDpornlove.com scripts loaded and ready - All browsers supported');
             activeCard = null;
         }
     });
-
-    console.log('✅ Video hover preview system initialized');
 })();
 
