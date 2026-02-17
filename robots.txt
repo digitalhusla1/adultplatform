@@ -11,7 +11,7 @@ Allow: /scripts/
 Allow: /assets/
 
 # Disallow sensitive pages
-Disallow: /contact.html (allow form submissions only)
+Disallow: /contact.html  # allow form submissions only
 
 # Crawl delay (optional, remove if not needed)
 Crawl-delay: 1

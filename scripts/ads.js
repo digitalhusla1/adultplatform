@@ -114,117 +114,144 @@ function injectFooterCodes() {
 const ADS = {
     // Leaderboard (728x90) - Appears at top of pages
     leaderboard: {
-        enabled: false,
-        code: '' // Add your ad code here
+        enabled: true,
+        key: 'e0edf43f3faa73af5c6a1714a1256219',
+        format: 'iframe',
+        width: 728,
+        height: 90
     },
 
-    // Medium Rectangle (632x190) - Mid-page ads
+    // Medium Rectangle (468x60) - Mid-page ads
     medium: {
-        enabled: false,
-        code: '' // Add your ad code here
+        enabled: true,
+        key: '30bebc1af24ddd4c7a0fd1dcb5b45a6c',
+        format: 'iframe',
+        width: 468,
+        height: 60
     },
 
-    // Small Rectangle (474x190) - Mobile-friendly
+    // Mobile Banner (320x50) - Mobile leaderboard banner
     small: {
-        enabled: false,
-        code: '' // Add your ad code here
+        enabled: true,
+        key: '2cf839e21b62de3d9181c9317da38afc',
+        format: 'iframe',
+        width: 320,
+        height: 50
     },
 
     // VGA (308x286) - Medium square
     vga: {
         enabled: false,
-        code: '' // Add your ad code here
+        key: '',
+        format: 'iframe',
+        width: 308,
+        height: 286
     },
 
-    // Billboard (908x258) - Large horizontal
+    // Billboard (908x258) - Large horizontal (using 728x90 leaderboard - closest available)
     billboard: {
-        enabled: false,
-        code: '' // Add your ad code here
+        enabled: true,
+        key: 'e0edf43f3faa73af5c6a1714a1256219',
+        format: 'iframe',
+        width: 728,
+        height: 90
     },
 
     // Box (300x250) - Sidebar ad
     box: {
-        enabled: false,
-        code: '' // Add your ad code here
+        enabled: true,
+        key: 'fb5ff5dc3acc0d69a0083a14253bf8f8',
+        format: 'iframe',
+        width: 300,
+        height: 250
     },
 
     // Skyscraper (160x600) - Tall sidebar ad
     skyscraper: {
-        enabled: false,
-        code: '' // Add your ad code here
+        enabled: true,
+        key: '85897e154d5bc226bd2ca581967e3afe',
+        format: 'iframe',
+        width: 160,
+        height: 600
     }
 };
 
 /**
+ * Inject a single ad into a container using proper script element creation
+ * (innerHTML does NOT execute <script> tags - must create DOM elements)
+ * @param {HTMLElement} container - The ad container element
+ * @param {Object} adConfig - Ad config with key, format, width, height
+ */
+function injectSingleAd(container, adConfig) {
+    try {
+        // Clear existing placeholder content
+        container.innerHTML = '';
+
+        // Create wrapper div for the ad
+        const wrapper = document.createElement('div');
+        wrapper.style.cssText = `max-width: ${adConfig.width}px; margin: 0 auto; display: flex; justify-content: center; align-items: center; min-height: ${adConfig.height}px;`;
+
+        // Use unique variable name per ad to avoid race condition
+        // (multiple ads overwriting global atOptions before invoke.js loads)
+        const uniqueVar = 'atOptions_' + adConfig.key.substring(0, 8);
+
+        // Step 1: Create the options script with unique scoped variable
+        const optionsScript = document.createElement('script');
+        optionsScript.textContent = `
+            atOptions = {
+                'key' : '${adConfig.key}',
+                'format' : '${adConfig.format}',
+                'height' : ${adConfig.height},
+                'width' : ${adConfig.width},
+                'params' : {}
+            };
+        `;
+
+        // Step 2: Create the invoke script (loads the ad)
+        const invokeScript = document.createElement('script');
+        invokeScript.src = `https://www.highperformanceformat.com/${adConfig.key}/invoke.js`;
+
+        // Append everything in order - wrapper first, then scripts sequentially
+        container.appendChild(wrapper);
+        wrapper.appendChild(optionsScript);
+        wrapper.appendChild(invokeScript);
+
+    } catch (error) {
+        console.error('❌ Error injecting single ad:', error);
+    }
+}
+
+/**
  * Inject ads into all designated containers on the page
- * Wraps entire ad container with border matching ad size
+ * Uses proper script element creation so ad network scripts execute correctly
  */
 function injectAllAds() {
     try {
-        // Leaderboard ads (728x90)
-        const leaderboardAds = document.querySelectorAll('.ad-leaderboard');
-        if (ADS.leaderboard.enabled && ADS.leaderboard.code) {
-            leaderboardAds.forEach(container => {
-                container.innerHTML = `<div style="width: 728px; border: 2px dashed #e63946; padding: 0; margin: 0 auto; display: flex; flex-direction: column;"><div style="flex: 1; display: flex; align-items: center; justify-content: center;">${ADS.leaderboard.code}</div><div style="padding: 8px 4px; font-size: 11px; color: #999; text-align: center; background-color: rgba(230, 57, 70, 0.05); border-top: 1px solid rgba(230, 57, 70, 0.2); display: flex; align-items: center; justify-content: center;">728x90 Leaderboard</div></div>`;
-            });
-            console.log(`✅ Injected ${leaderboardAds.length} leaderboard ad(s)`);
-        }
+        // Map of CSS selector → ADS config key
+        const adMapping = [
+            { selector: '.ad-leaderboard', config: ADS.leaderboard, label: 'leaderboard' },
+            { selector: '.ad-medium', config: ADS.medium, label: 'medium' },
+            { selector: '.ad-small', config: ADS.small, label: 'small' },
+            { selector: '.ad-vga', config: ADS.vga, label: 'vga' },
+            { selector: '.ad-billboard', config: ADS.billboard, label: 'billboard' },
+            { selector: '.ad-box', config: ADS.box, label: 'box' },
+            { selector: '.ad-box-skyscraper', config: ADS.skyscraper, label: 'skyscraper' }
+        ];
 
-        // Medium rectangle ads (632x190)
-        const mediumAds = document.querySelectorAll('.ad-medium');
-        if (ADS.medium.enabled && ADS.medium.code) {
-            mediumAds.forEach(container => {
-                container.innerHTML = `<div style="width: 632px; height: 190px; border: 2px dashed #e63946; padding: 0; margin: 0 auto; display: flex; flex-direction: column;"><div style="flex: 1; display: flex; align-items: center; justify-content: center;">${ADS.medium.code}</div><div style="padding: 8px 4px; font-size: 11px; color: #999; text-align: center; background-color: rgba(230, 57, 70, 0.05); border-top: 1px solid rgba(230, 57, 70, 0.2); display: flex; align-items: center; justify-content: center;">632x190 Medium</div></div>`;
-            });
-            console.log(`✅ Injected ${mediumAds.length} medium ad(s)`);
-        }
+        adMapping.forEach(({ selector, config, label }) => {
+            if (!config.enabled || !config.key) return;
 
-        // Small rectangle ads (474x190)
-        const smallAds = document.querySelectorAll('.ad-small');
-        if (ADS.small.enabled && ADS.small.code) {
-            smallAds.forEach(container => {
-                container.innerHTML = `<div style="width: 474px; height: 190px; border: 2px dashed #e63946; padding: 0; margin: 0 auto; display: flex; flex-direction: column;"><div style="flex: 1; display: flex; align-items: center; justify-content: center;">${ADS.small.code}</div><div style="padding: 8px 4px; font-size: 11px; color: #999; text-align: center; background-color: rgba(230, 57, 70, 0.05); border-top: 1px solid rgba(230, 57, 70, 0.2); display: flex; align-items: center; justify-content: center;">474x190 Small</div></div>`;
+            const containers = document.querySelectorAll(selector);
+            containers.forEach(container => {
+                injectSingleAd(container, config);
             });
-            console.log(`✅ Injected ${smallAds.length} small ad(s)`);
-        }
 
-        // VGA ads (308x286)
-        const vgaAds = document.querySelectorAll('.ad-vga');
-        if (ADS.vga.enabled && ADS.vga.code) {
-            vgaAds.forEach(container => {
-                container.innerHTML = `<div style="width: 308px; height: 286px; border: 2px dashed #e63946; padding: 0; margin: 0 auto; display: flex; flex-direction: column;"><div style="flex: 1; display: flex; align-items: center; justify-content: center;">${ADS.vga.code}</div><div style="padding: 8px 4px; font-size: 11px; color: #999; text-align: center; background-color: rgba(230, 57, 70, 0.05); border-top: 1px solid rgba(230, 57, 70, 0.2); display: flex; align-items: center; justify-content: center;">308x286 VGA</div></div>`;
-            });
-            console.log(`✅ Injected ${vgaAds.length} VGA ad(s)`);
-        }
+            if (containers.length > 0) {
+                console.log(`✅ Injected ${containers.length} ${label} ad(s)`);
+            }
+        });
 
-        // Billboard ads (908x258)
-        const billboardAds = document.querySelectorAll('.ad-billboard');
-        if (ADS.billboard.enabled && ADS.billboard.code) {
-            billboardAds.forEach(container => {
-                container.innerHTML = `<div style="width: 908px; height: 258px; border: 2px dashed #e63946; padding: 0; margin: 0 auto; display: flex; flex-direction: column;"><div style="flex: 1; display: flex; align-items: center; justify-content: center;">${ADS.billboard.code}</div><div style="padding: 8px 4px; font-size: 11px; color: #999; text-align: center; background-color: rgba(230, 57, 70, 0.05); border-top: 1px solid rgba(230, 57, 70, 0.2); display: flex; align-items: center; justify-content: center;">908x258 Billboard</div></div>`;
-            });
-            console.log(`✅ Injected ${billboardAds.length} billboard ad(s)`);
-        }
-
-        // Box ads (300x250)
-        const boxAds = document.querySelectorAll('.ad-box');
-        if (ADS.box.enabled && ADS.box.code) {
-            boxAds.forEach(container => {
-                container.innerHTML = `<div style="width: 300px; height: 250px; border: 2px dashed #e63946; padding: 0; margin: 0 auto; display: flex; flex-direction: column;"><div style="flex: 1; display: flex; align-items: center; justify-content: center;">${ADS.box.code}</div><div style="padding: 8px 4px; font-size: 11px; color: #999; text-align: center; background-color: rgba(230, 57, 70, 0.05); border-top: 1px solid rgba(230, 57, 70, 0.2); display: flex; align-items: center; justify-content: center;">300x250 Box</div></div>`;
-            });
-            console.log(`✅ Injected ${boxAds.length} box ad(s)`);
-        }
-
-        // Skyscraper ads (160x600)
-        const skyscraperAds = document.querySelectorAll('.ad-box-skyscraper');
-        if (ADS.skyscraper.enabled && ADS.skyscraper.code) {
-            skyscraperAds.forEach(container => {
-                container.innerHTML = `<div style="width: 160px; height: 600px; border: 2px dashed #e63946; padding: 0; margin: 0 auto; display: flex; flex-direction: column;"><div style="flex: 1; display: flex; align-items: center; justify-content: center;">${ADS.skyscraper.code}</div><div style="padding: 8px 4px; font-size: 11px; color: #999; text-align: center; background-color: rgba(230, 57, 70, 0.05); border-top: 1px solid rgba(230, 57, 70, 0.2); display: flex; align-items: center; justify-content: center;">160x600 Skyscraper</div></div>`;
-            });
-            console.log(`✅ Injected ${skyscraperAds.length} skyscraper ad(s)`);
-        }
-
-        console.log('✅ All ads injected successfully with sized borders');
+        console.log('✅ Ad injection complete');
     } catch (error) {
         console.error('❌ Error injecting ads:', error);
     }

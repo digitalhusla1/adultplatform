@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- Background circle -->
+  <circle cx="32" cy="32" r="32" fill="#0a0a0a" stroke="#e63946" stroke-width="2"/>
+  
+  <!-- Play button symbol (video icon) -->
+  <polygon points="24,16 24,48 48,32" fill="#e63946"/>
+  
+  <!-- Text: HD -->
+  <text x="32" y="55" font-size="10" font-weight="bold" fill="#e63946" text-anchor="middle" font-family="Arial">HD</text>
+</svg>

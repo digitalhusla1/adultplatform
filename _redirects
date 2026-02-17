@@ -6,5 +6,5 @@
 # Redirect /search/:query to /search.html with query param
 /search/:query  /search.html?query=:query  200
 
-# Catch-all: redirect to index for 404s (if needed)
-/* /index.html 200
+# Catch-all: return 404 for unknown paths
+/* /index.html 404

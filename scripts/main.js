@@ -255,13 +255,26 @@ async function searchVideos(query = 'all', page = 1) {
             return { ...data, videos: [] };
         }
 
-        // PERFORMANCE: Start filtering removed videos in background without blocking display
-        // Videos show immediately, filtering happens asynchronously
-        getRemovedIds().then(removedIds => {
-            data.videos = data.videos.filter(v => v && v.id && !removedIds.includes(v.id));
-        }).catch(err => console.warn('Removed IDs filtering failed:', err));
+        // PERFORMANCE OPTIMIZATION: Filter removed videos with timeout
+        // Try to get removed IDs, but don't wait forever (max 3 seconds)
+        try {
+            const removedIdsPromise = getRemovedIds();
+            const timeoutPromise = new Promise((resolve) => {
+                setTimeout(() => resolve([]), 3000); // 3 second timeout, return empty array if too slow
+            });
+            const removedIds = await Promise.race([removedIdsPromise, timeoutPromise]);
+            
+            if (removedIds.length > 0) {
+                data.videos = data.videos.filter(v => v && v.id && !removedIds.includes(v.id));
+                console.log(`Search "${query}" page ${page}: ${data.videos.length} videos after removed ID filtering`);
+            } else {
+                console.log(`Search "${query}" page ${page}: ${data.videos.length} videos (removed IDs not available)`);
+            }
+        } catch (err) {
+            console.warn('Removed IDs filtering warning (showing all results):', err.message);
+            // Continue without filtering if getRemovedIds fails
+        }
 
-        console.log(`Search "${query}" page ${page}: ${data.videos.length} videos found`);
         return data;
 
     } catch (error) {
@@ -304,10 +317,19 @@ async function getMostViewedVideos(page = 1) {
             return { ...data, videos: [] };
         }
 
-        // PERFORMANCE: Filter removed videos asynchronously in background
-        getRemovedIds().then(removedIds => {
-            data.videos = data.videos.filter(v => v && v.id && !removedIds.includes(v.id));
-        }).catch(err => console.warn('Removed IDs filtering failed:', err));
+        // PERFORMANCE: Filter removed videos with timeout (max 3 seconds)
+        try {
+            const removedIdsPromise = getRemovedIds();
+            const timeoutPromise = new Promise((resolve) => {
+                setTimeout(() => resolve([]), 3000);
+            });
+            const removedIds = await Promise.race([removedIdsPromise, timeoutPromise]);
+            if (removedIds.length > 0) {
+                data.videos = data.videos.filter(v => v && v.id && !removedIds.includes(v.id));
+            }
+        } catch (err) {
+            console.warn('Removed IDs filtering warning:', err.message);
+        }
 
         console.log(`Most viewed page ${page}: ${data.videos.length} videos found`);
         return data;
@@ -348,10 +370,19 @@ async function getTopRatedVideos(page = 1) {
             return { ...data, videos: [] };
         }
 
-        // PERFORMANCE: Filter removed videos asynchronously in background
-        getRemovedIds().then(removedIds => {
-            data.videos = data.videos.filter(v => v && v.id && !removedIds.includes(v.id));
-        }).catch(err => console.warn('Removed IDs filtering failed:', err));
+        // PERFORMANCE: Filter removed videos with timeout (max 3 seconds)
+        try {
+            const removedIdsPromise = getRemovedIds();
+            const timeoutPromise = new Promise((resolve) => {
+                setTimeout(() => resolve([]), 3000);
+            });
+            const removedIds = await Promise.race([removedIdsPromise, timeoutPromise]);
+            if (removedIds.length > 0) {
+                data.videos = data.videos.filter(v => v && v.id && !removedIds.includes(v.id));
+            }
+        } catch (err) {
+            console.warn('Removed IDs filtering warning:', err.message);
+        }
 
         console.log(`Top rated page ${page}: ${data.videos.length} videos found`);
         return data;
@@ -392,10 +423,19 @@ async function getNewestVideos(page = 1) {
             return { ...data, videos: [] };
         }
 
-        // PERFORMANCE: Filter removed videos asynchronously in background
-        getRemovedIds().then(removedIds => {
-            data.videos = data.videos.filter(v => v && v.id && !removedIds.includes(v.id));
-        }).catch(err => console.warn('Removed IDs filtering failed:', err));
+        // PERFORMANCE: Filter removed videos with timeout (max 3 seconds)
+        try {
+            const removedIdsPromise = getRemovedIds();
+            const timeoutPromise = new Promise((resolve) => {
+                setTimeout(() => resolve([]), 3000);
+            });
+            const removedIds = await Promise.race([removedIdsPromise, timeoutPromise]);
+            if (removedIds.length > 0) {
+                data.videos = data.videos.filter(v => v && v.id && !removedIds.includes(v.id));
+            }
+        } catch (err) {
+            console.warn('Removed IDs filtering warning:', err.message);
+        }
 
         console.log(`Newest videos page ${page}: ${data.videos.length} videos found`);
         return data;
@@ -420,7 +460,6 @@ async function getVideo(videoId) {
         // Validate video ID format
         if (!videoId || typeof videoId !== 'string' || videoId.length !== 11) {
             console.error(`❌ Invalid video ID format. Got: "${videoId}" (length: ${videoId ? videoId.length : 'null'})`);
-            console.error('Expected: 11 character alphanumeric string');
             throw new Error('Invalid video ID format');
         }
 
@@ -432,24 +471,18 @@ async function getVideo(videoId) {
         url.searchParams.append('thumbsize', CONFIG.THUMB_SIZE);
         url.searchParams.append('format', 'json');
 
-        console.log(`🌐 API URL: ${url.toString()}`);
-
         // Fetch with timeout
         const controller = new AbortController();
         const timeout = setTimeout(() => controller.abort(), 10000);
 
-        console.log('⏳ Sending request (timeout: 10s)...');
         const response = await fetch(url.toString(), { signal: controller.signal });
         clearTimeout(timeout);
-
-        console.log(`📊 Response status: ${response.status} ${response.statusText}`);
 
         if (!response.ok) {
             throw new Error(`API HTTP Error ${response.status}`);
         }
 
         const data = await response.json();
-        console.log('📦 API Response data:', data);
         
         // API returns empty array if video is removed or doesn't exist
         if (Array.isArray(data) && data.length === 0) {
@@ -457,11 +490,19 @@ async function getVideo(videoId) {
             return null;
         }
 
-        // Check if video is in removed list
-        const removedIds = await getRemovedIds();
-        if (data.id && removedIds.includes(data.id)) {
-            console.warn(`⚠️  Video ${videoId} is in removed list`);
-            return null;
+        // PERFORMANCE: Check removed list WITHOUT blocking video display
+        // Use cached list if available (instant), skip if not cached (don't wait for network)
+        try {
+            const cached = localStorage.getItem(CONFIG.REMOVED_CACHE_KEY);
+            if (cached) {
+                const removedIds = JSON.parse(cached);
+                if (data.id && removedIds.includes(data.id)) {
+                    console.warn(`⚠️  Video ${videoId} is in removed list`);
+                    return null;
+                }
+            }
+        } catch (e) {
+            // Ignore cache read errors - show the video
         }
 
         console.log('✅ Video data retrieved successfully');
@@ -545,7 +586,7 @@ async function getRemovedIds() {
 }
 
 // ========== AGE VERIFICATION ==========
-/* Age verification modal - shows on first visit, remembers for 24 hours */
+/* Age verification modal - shows on first visit, remembers for 30 days */
 
 /**
  * Check if user has verified age
@@ -573,12 +614,12 @@ function isAgeVerified() {
 }
 
 /**
- * Mark user as age verified for 24 hours
+ * Mark user as age verified for 30 days
  */
 function setAgeVerified() {
     localStorage.setItem(CONFIG.AGE_VERIFIED_KEY, 'true');
     localStorage.setItem(CONFIG.AGE_VERIFIED_KEY + '_time', Date.now().toString());
-    console.log('Age verification set - valid for 24 hours');
+    console.log('Age verification set - valid for 30 days');
 }
 
 /**
@@ -606,7 +647,7 @@ function hideAgeModal() {
 
 /**
  * Initialize age verification on page load
- * - Shows modal if user hasn't verified age in past 24 hours
+ * - Shows modal if user hasn't verified age in past 30 days
  * - If user clicks "No", redirects to google.com
  * - If user clicks "Yes", stores verification in localStorage
  */
@@ -667,6 +708,17 @@ function createVideoCard(video) {
         const duration = video.length_min || '0:00';
         const videoId = escapeHtml(video.id);
         
+        // Extract all thumbnail URLs for hover preview cycling
+        const thumbUrls = [];
+        if (video.thumbs && Array.isArray(video.thumbs)) {
+            video.thumbs.forEach(t => {
+                const url = (typeof t === 'string') ? t : (t && (t.src || t.big || t.medium));
+                if (url && !thumbUrls.includes(url)) thumbUrls.push(url);
+            });
+        }
+        // Use single-quoted attribute so JSON double quotes don't break HTML
+        const thumbsAttr = thumbUrls.length > 1 ? " data-thumbs='" + JSON.stringify(thumbUrls).replace(/'/g, '&#39;') + "'" : '';
+
         // Generate keyword-rich alt text for SEO and accessibility
         const altText = `HD ${title} - Free adult video with ${views} views`;
 
@@ -674,11 +726,12 @@ function createVideoCard(video) {
         return `
             <div class="video-card" onclick="goToVideo('${videoId}')" role="button" tabindex="0" aria-label="Watch ${title}">
                 <div class="video-thumbnail">
-                    <img src="${escapeHtml(thumbnail)}" alt="${altText}" loading="lazy" title="${title}">
+                    <img src="${escapeHtml(thumbnail)}" alt="${altText}" loading="lazy" title="${title}" data-default-thumb="${escapeHtml(thumbnail)}"${thumbsAttr}>
                     <div class="video-overlay">
                         <button>Watch Now</button>
                     </div>
                     <div class="video-duration">${duration}</div>
+                    <div class="preview-progress"></div>
                 </div>
                 <div class="video-info">
                     <div class="video-title">${title}</div>
@@ -897,7 +950,7 @@ function getUrlParam(name) {
     try {
         const params = new URLSearchParams(window.location.search);
         const value = params.get(name);
-        return value ? decodeURIComponent(value) : null;
+        return value || null;
     } catch (error) {
         console.error('getUrlParam Error:', error);
         return null;
@@ -996,6 +1049,12 @@ async function initSearchPage() {
         return;
     }
 
+    // Prefill search input with current query so user can modify it
+    const searchInput = document.getElementById('searchInput');
+    if (searchInput) {
+        searchInput.value = query;
+    }
+
     const container = document.getElementById('searchVideos');
     console.log('Search container found:', !!container);
     
@@ -1016,10 +1075,18 @@ async function initSearchPage() {
         // Show loading state
         container.innerHTML = '<div class="loading">Searching for videos...</div>';
 
-        // Fetch search results
-        console.log('Calling searchVideos...');
+        // PERFORMANCE: Start removing IDs prefetch in parallel (don't wait for it immediately)
+        const removedIdsFetch = getRemovedIds().catch(err => {
+            console.warn('Removed IDs prefetch failed (videos will show all results):', err.message);
+            return [];
+        });
+
+        // Fetch search results - this will wait for removed IDs if available
+        console.log('⏱️ Calling searchVideos...');
+        const startTime = performance.now();
         const data = await searchVideos(query, 1);
-        console.log('Search results received:', data);
+        const endTime = performance.now();
+        console.log(`✅ Search results received in ${(endTime - startTime).toFixed(0)}ms:`, data);
         
         // Update results info
         const resultsInfo = document.getElementById('resultsInfo');
@@ -1138,50 +1205,40 @@ async function initVideoPage() {
     const videoId = getUrlParam('id');
     
     console.log('=== VIDEO PAGE INIT ===');
-    console.log('URL:', window.location.href);
-    console.log('Video ID from URL:', videoId);
+    console.log('Video ID:', videoId);
     
     // Validate video ID
     if (!videoId) {
         console.error('❌ No video ID provided in URL');
-        console.log('Expected URL format: video.html?id=11charID');
         window.location.href = 'index.html';
         return;
     }
 
     const container = document.getElementById('videoContainer');
     if (!container) {
-        console.log('❌ videoContainer element not found - not on video page');
         return;
     }
 
     try {
         // Show loading state
-        console.log('📺 Loading video details for ID:', videoId);
         container.innerHTML = '<div class="loading">Loading video...</div>';
 
         // Fetch video details
-        console.log('🌐 Making API request...');
         const video = await getVideo(videoId);
-        
-        console.log('API Response:', video);
         
         // Check if video was found
         if (!video || !video.id) {
-            console.error('❌ Video not found or removed - ID:', videoId);
+            console.error('❌ Video not found or removed:', videoId);
             document.getElementById('noVideo').style.display = 'block';
             container.style.display = 'none';
             return;
         }
 
-        console.log('✅ Video found:', video.title);
-
         // Inject VideoObject schema markup for SEO
         injectVideoSchema(video);
 
-        // Render embed iframe
+        // Render embed iframe IMMEDIATELY for fastest display
         const embedUrl = escapeHtml(video.embed);
-        console.log('📹 Embed URL:', embedUrl);
         
         container.innerHTML = `<iframe 
             src="${embedUrl}" 
@@ -1685,33 +1742,16 @@ function initPage() {
         const path = window.location.pathname.toLowerCase();
         const href = window.location.href.toLowerCase();
 
-        console.log('=== DETAILED PAGE DETECTION ===');
-        console.log('pathname:', window.location.pathname);
-        console.log('pathname.toLowerCase():', path);
-        console.log('href:', window.location.href);
-        console.log('href.toLowerCase():', href);
-        console.log('path.includes("search"):', path.includes('search'));
-        console.log('href.includes("search?"):', href.includes('search?'));
-        console.log('path.includes("index.html"):', path.includes('index.html'));
-        console.log('path === "/":', path === '/');
-        console.log('path.endsWith("/"):', path.endsWith('/'));
-        console.log('path.includes("video"):', path.includes('video'));
-
         // Initialize page-specific functionality
         if (path.includes('index.html') || path === '/' || path.endsWith('/')) {
-            console.log('Detected: Home page');
             initHomePage();
         } else if (path.includes('search') || href.includes('search?')) {
-            console.log('Detected: Search page');
             initSearchPage();
         } else if (path.includes('video')) {
-            console.log('Detected: Video page');
             initVideoPage();
-        } else {
-            console.log('No page-specific init matched');
         }
 
-        console.log('Page initialization complete');
+        console.log('Page initialized');
 
     } catch (error) {
         console.error('Fatal initialization error:', error);
@@ -1870,4 +1910,106 @@ window.addEventListener('unhandledrejection', (event) => {
 });
 
 console.log('HDpornlove.com scripts loaded and ready - All browsers supported');
+
+// ========== VIDEO HOVER PREVIEW ==========
+/* Cycle through video thumbnails on mouse hover to simulate video preview */
+
+(function() {
+    'use strict';
+
+    let activeCard = null;
+    let previewInterval = null;
+    let thumbIndex = 0;
+    let preloadedThumbs = new Set();
+
+    /**
+     * Preload thumbnail images for smooth cycling
+     * @param {Array} thumbs - Array of thumbnail URLs
+     */
+    function preloadThumbs(thumbs) {
+        thumbs.forEach(url => {
+            if (!preloadedThumbs.has(url)) {
+                const img = new Image();
+                img.src = url;
+                preloadedThumbs.add(url);
+            }
+        });
+    }
+
+    /**
+     * Start cycling through thumbnails on a video card
+     * @param {HTMLElement} card - The video card element
+     */
+    function startPreview(card) {
+        const img = card.querySelector('.video-thumbnail img');
+        if (!img || !img.dataset.thumbs) return;
+
+        try {
+            const thumbs = JSON.parse(img.dataset.thumbs);
+            if (thumbs.length < 2) return;
+
+            // Preload all thumbs for smooth transitions
+            preloadThumbs(thumbs);
+
+            thumbIndex = 0;
+            card.classList.add('preview-active');
+
+            // Cycle through thumbnails every 600ms
+            previewInterval = setInterval(() => {
+                thumbIndex = (thumbIndex + 1) % thumbs.length;
+                img.src = thumbs[thumbIndex];
+            }, 600);
+        } catch (e) {
+            console.warn('Preview start error:', e);
+        }
+    }
+
+    /**
+     * Stop thumbnail cycling and revert to default thumbnail
+     * @param {HTMLElement} card - The video card element
+     */
+    function stopPreview(card) {
+        if (previewInterval) {
+            clearInterval(previewInterval);
+            previewInterval = null;
+        }
+
+        card.classList.remove('preview-active');
+
+        const img = card.querySelector('.video-thumbnail img');
+        if (img && img.dataset.defaultThumb) {
+            img.src = img.dataset.defaultThumb;
+        }
+    }
+
+    // Use event delegation on document for dynamic content support
+    document.addEventListener('mouseover', function(e) {
+        const card = e.target.closest('.video-card');
+
+        // Still hovering same card - do nothing
+        if (card === activeCard) return;
+
+        // Left previous card
+        if (activeCard) {
+            stopPreview(activeCard);
+            activeCard = null;
+        }
+
+        // Entered a new card
+        if (card) {
+            activeCard = card;
+            startPreview(card);
+        }
+    });
+
+    // Also handle mouse leaving the document entirely
+    document.addEventListener('mouseleave', function() {
+        if (activeCard) {
+            stopPreview(activeCard);
+            activeCard = null;
+        }
+    });
+
+    console.log('✅ Video hover preview system initialized');
+})();
 
