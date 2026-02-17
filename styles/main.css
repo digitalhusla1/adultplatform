@@ -35,6 +35,34 @@ iframe {
     z-index: 1;
 }
 
+/* ========== AD BANNER (TOP LEADERBOARD) ========== */
+.ad-banner-top {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 8px 0;
+    background-color: transparent;
+    overflow: hidden;
+    max-width: 100%;
+}
+
+.ad-banner-top iframe {
+    max-width: 100%;
+    display: block;
+    margin: 0 auto;
+}
+
+@media (max-width: 767px) {
+    .ad-banner-top {
+        padding: 4px 0;
+    }
+
+    .ad-banner-top iframe {
+        max-width: 100%;
+        height: auto;
+    }
+}
+
 /* ========== RESET & TYPOGRAPHY ========== */
 * {
     margin: 0;
