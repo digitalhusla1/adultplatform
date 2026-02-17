@@ -42,12 +42,12 @@ Cache-Control = "public, max-age=600"
 [[headers]]
 for = "/styles/*"
 [headers.values]
-Cache-Control = "public, max-age=604800"
+Cache-Control = "public, max-age=86400"
 
 [[headers]]
 for = "/scripts/*"
 [headers.values]
-Cache-Control = "public, max-age=604800"
+Cache-Control = "public, max-age=3600"
 
 # Security headers
 [[headers]]
