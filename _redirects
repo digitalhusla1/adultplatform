@@ -7,4 +7,4 @@
 /search/:query  /search.html?query=:query  200
 
 # Catch-all: return 404 for unknown paths
-/* /index.html 404
+/* /404.html 404
