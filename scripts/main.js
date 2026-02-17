@@ -186,6 +186,23 @@ let currentPageMostViewed = 1;
 let currentPageTopRated = 1;
 let currentPageNewest = 1;
 
+/* Performance: In-memory cache for removed video IDs (eliminates 3s blocking waits) */
+let _removedIdsCache = null;        // Set of removed IDs for O(1) lookups
+let _removedIdsFetchPromise = null; // Singleton promise to deduplicate concurrent requests
+
+// Pre-populate cache from localStorage synchronously at load time (instant, non-blocking)
+try {
+    const _cachedIds = localStorage.getItem(CONFIG.REMOVED_CACHE_KEY);
+    const _cacheTime = localStorage.getItem(CONFIG.REMOVED_CACHE_KEY + '_time');
+    if (_cachedIds && _cacheTime) {
+        const _age = Date.now() - parseInt(_cacheTime);
+        if (_age < CONFIG.REMOVED_CACHE_EXPIRY) {
+            _removedIdsCache = new Set(JSON.parse(_cachedIds));
+            console.log(`\u26A1 Pre-loaded ${_removedIdsCache.size} removed IDs from cache`);
+        }
+    }
+} catch (e) { /* Ignore cache read errors */ }
+
 /* Mobile detection and optimization */
 const isMobileDevice = () => {
     return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
@@ -255,24 +272,12 @@ async function searchVideos(query = 'all', page = 1) {
             return { ...data, videos: [] };
         }
 
-        // PERFORMANCE OPTIMIZATION: Filter removed videos with timeout
-        // Try to get removed IDs, but don't wait forever (max 3 seconds)
-        try {
-            const removedIdsPromise = getRemovedIds();
-            const timeoutPromise = new Promise((resolve) => {
-                setTimeout(() => resolve([]), 3000); // 3 second timeout, return empty array if too slow
-            });
-            const removedIds = await Promise.race([removedIdsPromise, timeoutPromise]);
-            
-            if (removedIds.length > 0) {
-                data.videos = data.videos.filter(v => v && v.id && !removedIds.includes(v.id));
-                console.log(`Search "${query}" page ${page}: ${data.videos.length} videos after removed ID filtering`);
-            } else {
-                console.log(`Search "${query}" page ${page}: ${data.videos.length} videos (removed IDs not available)`);
-            }
-        } catch (err) {
-            console.warn('Removed IDs filtering warning (showing all results):', err.message);
-            // Continue without filtering if getRemovedIds fails
+        // PERFORMANCE: Instant removed IDs filtering using in-memory Set (non-blocking, 0ms)
+        if (_removedIdsCache && _removedIdsCache.size > 0) {
+            data.videos = data.videos.filter(v => v && v.id && !_removedIdsCache.has(v.id));
+            console.log(`Search "${query}" page ${page}: ${data.videos.length} videos after filtering`);
+        } else {
+            console.log(`Search "${query}" page ${page}: ${data.videos.length} videos (cache warming)`);
         }
 
         return data;
@@ -317,18 +322,9 @@ async function getMostViewedVideos(page = 1) {
             return { ...data, videos: [] };
         }
 
-        // PERFORMANCE: Filter removed videos with timeout (max 3 seconds)
-        try {
-            const removedIdsPromise = getRemovedIds();
-            const timeoutPromise = new Promise((resolve) => {
-                setTimeout(() => resolve([]), 3000);
-            });
-            const removedIds = await Promise.race([removedIdsPromise, timeoutPromise]);
-            if (removedIds.length > 0) {
-                data.videos = data.videos.filter(v => v && v.id && !removedIds.includes(v.id));
-            }
-        } catch (err) {
-            console.warn('Removed IDs filtering warning:', err.message);
+        // PERFORMANCE: Instant removed IDs filtering using in-memory Set (non-blocking, 0ms)
+        if (_removedIdsCache && _removedIdsCache.size > 0) {
+            data.videos = data.videos.filter(v => v && v.id && !_removedIdsCache.has(v.id));
         }
 
         console.log(`Most viewed page ${page}: ${data.videos.length} videos found`);
@@ -370,18 +366,9 @@ async function getTopRatedVideos(page = 1) {
             return { ...data, videos: [] };
         }
 
-        // PERFORMANCE: Filter removed videos with timeout (max 3 seconds)
-        try {
-            const removedIdsPromise = getRemovedIds();
-            const timeoutPromise = new Promise((resolve) => {
-                setTimeout(() => resolve([]), 3000);
-            });
-            const removedIds = await Promise.race([removedIdsPromise, timeoutPromise]);
-            if (removedIds.length > 0) {
-                data.videos = data.videos.filter(v => v && v.id && !removedIds.includes(v.id));
-            }
-        } catch (err) {
-            console.warn('Removed IDs filtering warning:', err.message);
+        // PERFORMANCE: Instant removed IDs filtering using in-memory Set (non-blocking, 0ms)
+        if (_removedIdsCache && _removedIdsCache.size > 0) {
+            data.videos = data.videos.filter(v => v && v.id && !_removedIdsCache.has(v.id));
         }
 
         console.log(`Top rated page ${page}: ${data.videos.length} videos found`);
@@ -423,18 +410,9 @@ async function getNewestVideos(page = 1) {
             return { ...data, videos: [] };
         }
 
-        // PERFORMANCE: Filter removed videos with timeout (max 3 seconds)
-        try {
-            const removedIdsPromise = getRemovedIds();
-            const timeoutPromise = new Promise((resolve) => {
-                setTimeout(() => resolve([]), 3000);
-            });
-            const removedIds = await Promise.race([removedIdsPromise, timeoutPromise]);
-            if (removedIds.length > 0) {
-                data.videos = data.videos.filter(v => v && v.id && !removedIds.includes(v.id));
-            }
-        } catch (err) {
-            console.warn('Removed IDs filtering warning:', err.message);
+        // PERFORMANCE: Instant removed IDs filtering using in-memory Set (non-blocking, 0ms)
+        if (_removedIdsCache && _removedIdsCache.size > 0) {
+            data.videos = data.videos.filter(v => v && v.id && !_removedIdsCache.has(v.id));
         }
 
         console.log(`Newest videos page ${page}: ${data.videos.length} videos found`);
@@ -490,19 +468,10 @@ async function getVideo(videoId) {
             return null;
         }
 
-        // PERFORMANCE: Check removed list WITHOUT blocking video display
-        // Use cached list if available (instant), skip if not cached (don't wait for network)
-        try {
-            const cached = localStorage.getItem(CONFIG.REMOVED_CACHE_KEY);
-            if (cached) {
-                const removedIds = JSON.parse(cached);
-                if (data.id && removedIds.includes(data.id)) {
-                    console.warn(`⚠️  Video ${videoId} is in removed list`);
-                    return null;
-                }
-            }
-        } catch (e) {
-            // Ignore cache read errors - show the video
+        // PERFORMANCE: Instant removed check using in-memory Set (O(1) lookup, 0ms)
+        if (_removedIdsCache && data.id && _removedIdsCache.has(data.id)) {
+            console.warn(`⚠️  Video ${videoId} is in removed list`);
+            return null;
         }
 
         console.log('✅ Video data retrieved successfully');
@@ -519,70 +488,88 @@ async function getVideo(videoId) {
 }
 
 /**
- * Get list of removed video IDs and cache them for 24 hours
- * @returns {Promise<Array>} - Array of removed video IDs
+ * Get list of removed video IDs and cache them
+ * @returns {Promise<Set>} - Set of removed video IDs for O(1) lookups
  * 
- * CACHING: Results stored in localStorage to avoid repeated API calls
+ * PERFORMANCE: Deduplicates concurrent requests via singleton promise
+ * CACHING: Results stored in localStorage + in-memory Set
  * EXPIRY: Cache refreshes after 24 hours
  * FALLBACK: Uses expired cache if API call fails
  */
 async function getRemovedIds() {
+    // 1. Return in-memory cache instantly (fastest path - microseconds)
+    if (_removedIdsCache !== null) {
+        return _removedIdsCache;
+    }
+
+    // 2. Deduplicate: if a fetch is already in-flight, share that promise
+    if (_removedIdsFetchPromise) {
+        return _removedIdsFetchPromise;
+    }
+
+    // 3. Check localStorage cache
     const cached = localStorage.getItem(CONFIG.REMOVED_CACHE_KEY);
     const cacheTime = localStorage.getItem(CONFIG.REMOVED_CACHE_KEY + '_time');
 
-    // Return cached data if still valid (within 24 hours)
     if (cached && cacheTime) {
         const age = Date.now() - parseInt(cacheTime);
         if (age < CONFIG.REMOVED_CACHE_EXPIRY) {
-            console.log(`Using cached removed IDs (${Math.round(age / 60000)} minutes old)`);
-            return JSON.parse(cached);
+            _removedIdsCache = new Set(JSON.parse(cached));
+            console.log(`Using cached removed IDs (${_removedIdsCache.size} IDs, ${Math.round(age / 60000)}m old)`);
+            return _removedIdsCache;
         }
     }
 
-    try {
-        console.log('Fetching fresh removed video IDs from API...');
-        const url = `${CONFIG.API_BASE}video/removed/?format=json`;
-        
-        // Fetch with timeout
-        const controller = new AbortController();
-        const timeout = setTimeout(() => controller.abort(), 10000);
+    // 4. Fetch from API (deduplicated - single in-flight request shared by all callers)
+    _removedIdsFetchPromise = (async () => {
+        try {
+            console.log('Fetching fresh removed video IDs from API...');
+            const url = `${CONFIG.API_BASE}video/removed/?format=json`;
+            const controller = new AbortController();
+            const timeout = setTimeout(() => controller.abort(), 10000);
 
-        const response = await fetch(url, { signal: controller.signal });
-        clearTimeout(timeout);
+            const response = await fetch(url, { signal: controller.signal });
+            clearTimeout(timeout);
 
-        if (!response.ok) {
-            throw new Error(`API HTTP Error ${response.status}`);
+            if (!response.ok) {
+                throw new Error(`API HTTP Error ${response.status}`);
+            }
+
+            const data = await response.json();
+
+            if (!Array.isArray(data)) {
+                throw new Error('Invalid API response format');
+            }
+
+            const ids = data.map(item => item.id).filter(id => id);
+
+            // Cache to localStorage
+            localStorage.setItem(CONFIG.REMOVED_CACHE_KEY, JSON.stringify(ids));
+            localStorage.setItem(CONFIG.REMOVED_CACHE_KEY + '_time', Date.now().toString());
+
+            // Cache to memory as Set for O(1) lookups
+            _removedIdsCache = new Set(ids);
+            console.log(`Cached ${_removedIdsCache.size} removed video IDs (in-memory Set)`);
+            return _removedIdsCache;
+
+        } catch (error) {
+            console.warn('getRemovedIds Error, using fallback:', error.message);
+
+            if (cached) {
+                _removedIdsCache = new Set(JSON.parse(cached));
+                console.log('Using expired cache as fallback');
+                return _removedIdsCache;
+            }
+
+            _removedIdsCache = new Set();
+            console.warn('No cache available, returning empty removed set');
+            return _removedIdsCache;
+        } finally {
+            _removedIdsFetchPromise = null;
         }
+    })();
 
-        const data = await response.json();
-        
-        // Validate response
-        if (!Array.isArray(data)) {
-            throw new Error('Invalid API response format');
-        }
-
-        const ids = data.map(item => item.id).filter(id => id); // Filter out null/undefined
-        
-        // Cache the results
-        localStorage.setItem(CONFIG.REMOVED_CACHE_KEY, JSON.stringify(ids));
-        localStorage.setItem(CONFIG.REMOVED_CACHE_KEY + '_time', Date.now().toString());
-
-        console.log(`Cached ${ids.length} removed video IDs`);
-        return ids;
-
-    } catch (error) {
-        console.warn('getRemovedIds Error, using fallback cache:', error.message);
-        
-        // Fallback to expired cache if available
-        if (cached) {
-            console.log('Using expired cache as fallback');
-            return JSON.parse(cached);
-        }
-        
-        // If no cache available, return empty array (don't filter any videos)
-        console.warn('No cache available, returning empty removed list');
-        return [];
-    }
+    return _removedIdsFetchPromise;
 }
 
 // ========== AGE VERIFICATION ==========
@@ -726,7 +713,7 @@ function createVideoCard(video) {
         return `
             <div class="video-card" onclick="goToVideo('${videoId}')" role="button" tabindex="0" aria-label="Watch ${title}">
                 <div class="video-thumbnail">
-                    <img src="${escapeHtml(thumbnail)}" alt="${altText}" loading="lazy" title="${title}" data-default-thumb="${escapeHtml(thumbnail)}"${thumbsAttr}>
+                    <img src="${escapeHtml(thumbnail)}" alt="${altText}" loading="lazy" decoding="async" title="${title}" data-default-thumb="${escapeHtml(thumbnail)}"${thumbsAttr}>
                     <div class="video-overlay">
                         <button>Watch Now</button>
                     </div>
@@ -1075,13 +1062,7 @@ async function initSearchPage() {
         // Show loading state
         container.innerHTML = '<div class="loading">Searching for videos...</div>';
 
-        // PERFORMANCE: Start removing IDs prefetch in parallel (don't wait for it immediately)
-        const removedIdsFetch = getRemovedIds().catch(err => {
-            console.warn('Removed IDs prefetch failed (videos will show all results):', err.message);
-            return [];
-        });
-
-        // Fetch search results - this will wait for removed IDs if available
+        // Fetch search results
         console.log('⏱️ Calling searchVideos...');
         const startTime = performance.now();
         const data = await searchVideos(query, 1);
