@@ -44,6 +44,13 @@ iframe {
     background-color: transparent;
     overflow: hidden;
     max-width: 100%;
+    width: 100%;
+    text-align: center;
+}
+
+.ad-banner-top > * {
+    margin-left: auto;
+    margin-right: auto;
 }
 
 .ad-banner-top iframe {
