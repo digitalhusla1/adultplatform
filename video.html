@@ -3,23 +3,26 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Watch premium HD adult videos on HDpornlove.com - Free streaming 24/7, 18+ only. High-quality porn videos with search and categorization.">
-    <meta name="keywords" content="watch porn, adult video player, stream xxx, hd porn, free videos, porn streaming">
-    <meta name="robots" content="index, follow">
+    <!-- SEO: default meta - JS overwrites title/description/canonical/OG per video -->
+    <meta name="description" content="Watch free HD porn videos in HD quality on HDPornLove - the best free HD porn site. Thousands of free HD sex videos streaming free 24/7. 18+ only.">
+    <meta name="keywords" content="free hd porn video, watch free hd porn, hd sex video, free porn streaming, hd porn tube">
+    <meta name="robots" content="index, follow, max-image-preview:large">
     <meta name="author" content="HDpornlove.com">
-    <title>Watch Video - HDPornLove Free HD Porn Streaming</title>
+    <title>Free HD Porn Video - Watch in HD | HDPornLove</title>
+    <!-- SEO: canonical is updated by JS to video.html?id=VIDEO_ID for each video -->
     <link rel="canonical" href="https://hdpornlove.com/video.html">
     <link rel="icon" type="image/svg+xml" href="favicon.svg">
     <!-- Open Graph (JS updates dynamically for specific videos) -->
-    <meta property="og:title" content="Watch HD Video - HDPornLove">
-    <meta property="og:description" content="Watch premium HD adult videos on HDpornlove.com - Free streaming 24/7, 18+ only.">
+    <meta property="og:title" content="Free HD Porn Video - Watch in HD | HDPornLove">
+    <meta property="og:description" content="Watch this free HD porn video on HDPornLove - free HD sex videos streaming 24/7. 18+ only.">
     <meta property="og:url" content="https://hdpornlove.com/video.html">
     <meta property="og:type" content="video.other">
     <meta property="og:site_name" content="HDPornLove">
-    <!-- Twitter Card -->
-    <meta name="twitter:card" content="summary">
-    <meta name="twitter:title" content="Watch HD Video - HDPornLove">
-    <meta name="twitter:description" content="Watch premium HD adult videos on HDpornlove.com - Free streaming 24/7.">
+    <meta property="og:locale" content="en_US">
+    <!-- Twitter Card (large image set by JS once the thumbnail is known) -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Free HD Porn Video - Watch in HD | HDPornLove">
+    <meta name="twitter:description" content="Watch this free HD porn video on HDPornLove - free HD sex videos streaming 24/7.">
     <!-- Preconnect for faster API and embed loading -->
     <link rel="preconnect" href="https://www.eporner.com" crossorigin>
     <link rel="dns-prefetch" href="https://www.eporner.com">
@@ -29,8 +32,9 @@
     <header>
         <div class="header-container">
             <div class="logo">
-                <h1><a href="index.html">HDPornLove</a></h1>
-                <span class="tagline">Free HD Adult Videos</span>
+                <!-- SEO: logo is a <p> here - the page H1 below is the real page heading -->
+                <p class="logo-title"><a href="index.html">HDPornLove</a></p>
+                <span class="tagline">Free HD Porn Videos</span>
             </div>
             <button class="menu-toggle" id="menuToggle" aria-label="Toggle menu">
                 <span></span>
@@ -94,7 +98,8 @@
 <div id="videoContainer" class="loading">Loading video...</div>
 
             <div id="videoInfo" style="display: none;">
-                <h2 id="videoTitle"></h2>
+                <!-- SEO H1: video title (filled by main.js initVideoPage) -->
+                <h1 id="videoTitle"></h1>
                 
                 <div class="video-meta">
                     <span id="videoViews" class="meta-item">Views: <strong></strong></span>
@@ -220,7 +225,20 @@
                     <li><a href="dmca.html">DMCA</a></li>
                 </ul>
             </div>
-            <div class="footer-social">
+                <div class="footer-links footer-browse">
+        <h4>Browse</h4>
+        <ul>
+            <li><a href="index.html">Free HD Porn Videos</a></li>
+            <li><a href="categories.html">Porn Categories</a></li>
+            <li><a href="pornstars.html">Pornstars HD Videos Free</a></li>
+            <li><a href="pics.html">Free HD Porn Pictures</a></li>
+            <li><a href="search.html?query=free+milf+porn+videos">Free MILF Porn</a></li>
+            <li><a href="search.html?query=free+lesbian+porn+hd">Free Lesbian Porn HD</a></li>
+            <li><a href="search.html?query=free+anal+porn+videos">Free Anal Porn Videos</a></li>
+            <li><a href="search.html?query=free+amateur+porn+hd">Free Amateur Porn HD</a></li>
+        </ul>
+    </div>
+<div class="footer-social">
                 <h4>Follow Us</h4>
                 <ul>
                     <li><a href="https://x.com/HdPorn72641" target="_blank" rel="noopener">𝕏 Twitter</a></li>

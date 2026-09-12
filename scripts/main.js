@@ -483,8 +483,8 @@ function createVideoCard(video) {
         // Use single-quoted attribute so JSON double quotes don't break HTML
         const thumbsAttr = thumbUrls.length > 1 ? " data-thumbs='" + JSON.stringify(thumbUrls).replace(/'/g, '&#39;') + "'" : '';
 
-        // Generate keyword-rich alt text for SEO and accessibility
-        const altText = `HD ${title} - Free adult video with ${views} views`;
+        // SEO: descriptive thumbnail alt text - the natural keyword is the video title
+        const altText = `${title} - free HD porn video thumbnail`;
 
         // Return HTML template
         return `
@@ -703,6 +703,15 @@ async function initHomePage() {
 
         renderVideos(newestData.videos, 'newestVideos');
         setupTrendingPagination(newestData, 'newest');
+
+        // SEO: set og:image to the first video thumbnail so social shares show an image
+        const first = (trendingData.videos && trendingData.videos[0]) ||
+                      (viewedData.videos && viewedData.videos[0]) ||
+                      (ratedData.videos && ratedData.videos[0]) ||
+                      (newestData.videos && newestData.videos[0]);
+        if (first && first.default_thumb && first.default_thumb.src) {
+            updateDynamicSEO({ image: first.default_thumb.src });
+        }
     } catch (error) {
         container.innerHTML = '<div class="no-results"><p>⚠️ Error loading videos. Please refresh the page.</p></div>';
     }
@@ -735,11 +744,18 @@ async function initSearchPage() {
     }
 
     try {
-        // Update page title
-        const title = document.getElementById('searchTitle');
-        if (title) {
-            title.textContent = `Search Results for "${escapeHtml(query)}"`;
+        // SEO: dynamic keyword-rich H1 + <title> + meta description + canonical
+        // for this specific query (e.g. "milf" -> "Free Milf HD Porn Videos")
+        const qTitle = query.replace(/\b\w/g, ch => ch.toUpperCase()); // Title Case for headings
+        const pageTitle = document.getElementById('searchTitle');
+        if (pageTitle) {
+            pageTitle.textContent = `Free ${qTitle} HD Porn Videos`;
         }
+        updateDynamicSEO({
+            title: `${qTitle} Porn Videos - Free HD ${qTitle} Sex Videos | HDPornLove`,
+            description: `Watch free ${query} porn videos in HD on HDPornLove. Thousands of free ${query} HD sex videos streaming free 24/7 - the best free HD porn tube. 18+`,
+            canonical: `https://hdpornlove.com/search.html?query=${encodeURIComponent(query)}`
+        });
 
         // Show loading state
         container.innerHTML = '<div class="loading">Searching for videos...</div>';
@@ -767,6 +783,8 @@ async function initSearchPage() {
         // Render videos
         renderVideos(data.videos, 'searchVideos');
         setupPagination(data, query);
+        // SEO: ItemList structured data for the result grid
+        injectItemListSchema(data.videos);
     } catch (error) {
         container.innerHTML = '<div class="no-results"><p>⚠️ Error loading search results. ' + error.message + '</p></div>';
     }
@@ -806,22 +824,31 @@ function injectVideoSchema(video) {
             return iso === 'PT' ? 'PT0S' : iso;
         }
 
-        // Generate unique description based on video data
-        const description = `Watch ${escapeHtml(video.title)} on HDpornlove - Free HD adult streaming. ${
+        // NOTE: use RAW title/description here (JSON.stringify handles escaping) -
+        // escapeHtml() would put HTML entities like &amp; inside the structured data
+        const description = `Watch ${video.title} free in HD on HDPornLove - free HD sex videos streaming 24/7. ${
             video.length_min ? `Duration: ${video.length_min}. ` : ''
-        }${video.views ? `Views: ${video.views.toLocaleString()}. ` : ''}High-quality HD adult video content with interactive features.`;
+        }${video.views ? `Views: ${Number(video.views).toLocaleString()}. ` : ''}High-quality free HD porn video.`;
 
-        // Create VideoObject schema
+        // VideoObject schema (enables Google video rich results)
         const schema = {
             '@context': 'https://schema.org',
             '@type': 'VideoObject',
             'name': video.title || 'Untitled Video',
             'description': description.substring(0, 500),
-            'thumbnailUrl': video.default_thumb?.src || '',
-            'contentUrl': video.embed || '',
-            'embedUrl': video.embed || '',
-            'duration': formatDurationToISO(video.length_min),
+            'thumbnailUrl': [video.default_thumb?.src].filter(Boolean),
             'uploadDate': video.added ? new Date(video.added).toISOString() : new Date().toISOString(),
+            'duration': formatDurationToISO(video.length_min),
+            'embedUrl': video.embed || '',
+            'contentUrl': video.embed || '',
+            'inLanguage': 'en',
+            'isFamilyFriendly': false,
+            'contentRating': 'XXX',
+            'publisher': {
+                '@type': 'Organization',
+                'name': 'HDPornLove',
+                'url': 'https://hdpornlove.com/'
+            },
             'interactionStatistic': [
                 {
                     '@type': 'InteractionCounter',
@@ -836,16 +863,92 @@ function injectVideoSchema(video) {
             ]
         };
 
+        // Breadcrumb schema: Home > {video title} (sitelinks + SERP breadcrumb display)
+        const breadcrumb = {
+            '@context': 'https://schema.org',
+            '@type': 'BreadcrumbList',
+            'itemListElement': [
+                { '@type': 'ListItem', 'position': 1, 'name': 'Home', 'item': 'https://hdpornlove.com/' },
+                { '@type': 'ListItem', 'position': 2, 'name': video.title || 'Free HD Porn Video' }
+            ]
+        };
+
         // Remove any existing schema script tags for this video
         const existingScripts = document.querySelectorAll('script[data-video-schema]');
         existingScripts.forEach(s => s.remove());
 
-        // Create and inject script tag
+        // Create and inject script tag (VideoObject + BreadcrumbList)
         const schemaScript = document.createElement('script');
         schemaScript.type = 'application/ld+json';
         schemaScript.setAttribute('data-video-schema', 'true');
-        schemaScript.textContent = JSON.stringify(schema);
+        schemaScript.textContent = JSON.stringify([schema, breadcrumb]);
         document.head.appendChild(schemaScript);
+
+        // Update all on-page SEO meta tags for this specific video (title,
+        // description, canonical URL and social sharing tags)
+        updateDynamicSEO({
+            title: `${video.title} - Free HD Porn Video | HDPornLove`,
+            description: `Watch ${video.title} free in HD on HDPornLove${
+                video.length_min ? ` (${video.length_min})` : ''
+            }. Free HD sex videos streaming 24/7 - the best free HD porn tube. 18+`,
+            canonical: `https://hdpornlove.com/video.html?id=${encodeURIComponent(video.id)}`,
+            image: video.default_thumb?.src || ''
+        });
+    } catch (error) {
+    }
+}
+
+/**
+ * Dynamically update the page's SEO meta tags (used by video & search pages).
+ * Sets: <title>, meta description, canonical URL, Open Graph + Twitter tags
+ * and (optionally) og:image / twitter:image for social sharing.
+ * @param {Object} seo - { title, description, canonical, image? }
+ */
+function updateDynamicSEO(seo) {
+    try {
+        if (!seo) return;
+        if (seo.title) document.title = seo.title;
+        const setAttr = (selector, attr, value) => {
+            const el = document.querySelector(selector);
+            if (el && value) el.setAttribute(attr, value);
+        };
+        setAttr('meta[name="description"]', 'content', seo.description);
+        setAttr('link[rel="canonical"]', 'href', seo.canonical);
+        setAttr('meta[property="og:title"]', 'content', seo.title);
+        setAttr('meta[property="og:description"]', 'content', seo.description);
+        setAttr('meta[property="og:url"]', 'content', seo.canonical);
+        setAttr('meta[name="twitter:title"]', 'content', seo.title);
+        setAttr('meta[name="twitter:description"]', 'content', seo.description);
+        setAttr('meta[property="og:image"]', 'content', seo.image);
+        setAttr('meta[name="twitter:image"]', 'content', seo.image);
+    } catch (error) {
+        // SEO updates must never break the page
+    }
+}
+
+/**
+ * Inject ItemList schema for a list of videos (search results / video grids).
+ * Helps search engines understand the page as a collection of videos.
+ * @param {Array} videos - Video objects from the Eporner API
+ */
+function injectItemListSchema(videos) {
+    try {
+        if (!Array.isArray(videos) || videos.length === 0) return;
+        const itemList = {
+            '@context': 'https://schema.org',
+            '@type': 'ItemList',
+            'itemListElement': videos.slice(0, 20).map((v, i) => ({
+                '@type': 'ListItem',
+                'position': i + 1,
+                'url': `https://hdpornlove.com/video.html?id=${encodeURIComponent(v.id || '')}`,
+                'name': v.title || 'Free HD Porn Video'
+            }))
+        };
+        const script = document.createElement('script');
+        script.type = 'application/ld+json';
+        script.setAttribute('data-itemlist-schema', 'true');
+        script.textContent = JSON.stringify(itemList);
+        document.head.appendChild(script);
     } catch (error) {
     }
 }
@@ -900,8 +1003,8 @@ async function initVideoPage() {
             style="width: 100%; height: 100%; border: 0; display: block;">
         </iframe>`;
 
-        // Update page title (use raw title - document.title renders text, not HTML entities)
-        document.title = `${video.title} - HDpornlove.com`;
+        // SEO: title/description/canonical/OG are set by updateDynamicSEO()
+        // (called from injectVideoSchema above)
 
         // Update video info section
         const videoInfo = document.getElementById('videoInfo');
@@ -944,7 +1047,9 @@ async function initVideoPage() {
                         .slice(0, 15) // Limit to 15 tags
                         .map(tag => {
                             const escapedTag = escapeHtml(tag);
-                            return `<span class="tag" data-tag="${escapedTag}" role="button" tabindex="0" onclick="searchTag(this.dataset.tag)">${escapedTag}</span>`;
+                            // SEO: crawlable internal links to tag search pages
+                            // (previously JS-only spans - search engines can now follow these)
+                            return `<a class="tag" href="search.html?query=${encodeURIComponent(tag)}" title="Watch free ${escapedTag} porn videos">${escapedTag}</a>`;
                         })
                         .join('');
                 }

@@ -47,17 +47,18 @@ function createPornstarCard(name, thumbUrl) {
     const encoded = encodeURIComponent(name);
     const safeName = escapeHtml(name);
     const img = thumbUrl
-        ? `<img src="${escapeHtml(thumbUrl)}" alt="${safeName} - free HD porn videos" loading="lazy" decoding="async"
+        ? `<img src="${escapeHtml(thumbUrl)}" alt="${safeName} - pornstar HD videos free" loading="lazy" decoding="async"
                onerror="this.src='${PLACEHOLDER_IMG}'">`
-        : `<img src="${PLACEHOLDER_IMG}" alt="" loading="lazy">`;
+        : `<img src="${PLACEHOLDER_IMG}" alt="${safeName} - pornstar HD videos free" loading="lazy">`;
 
+    // SEO: keyword-rich link text & title for the pornstar card
     return `
-        <a href="search.html?query=${encoded}" class="pornstar-card" aria-label="Watch ${safeName} videos">
+        <a href="search.html?query=${encoded}" class="pornstar-card" aria-label="Watch ${safeName} pornstar HD videos free" title="Watch ${safeName} pornstar HD videos free">
             <div class="pornstar-thumb">
                 ${img}
                 <div class="pornstar-overlay"><span>Watch Videos</span></div>
             </div>
-            <div class="pornstar-name">${safeName}</div>
+            <div class="pornstar-name">${safeName} HD Videos</div>
         </a>
     `;
 }
@@ -103,7 +104,7 @@ async function initPornstarsPage() {
                 const img = card.querySelector('img');
                 if (img) {
                     img.src = thumb;
-                    img.alt = `${escapeHtml(name)} - free HD porn videos`;
+                    img.alt = `${escapeHtml(name)} - pornstar HD videos free`;
                 }
             }
         }
@@ -129,8 +130,7 @@ function createPicCard(video) {
         return `
             <a href="gallery.html?id=${videoId}" class="pic-card" aria-label="Open picture gallery: ${title}">
                 <div class="pic-thumb">
-                    <img src="${escapeHtml(thumb)}" alt="${title} - HD picture gallery"
-                         loading="lazy" decoding="async" onerror="this.src='${PLACEHOLDER_IMG}'">
+                    <img src="${escapeHtml(thumb)}" alt="${title} - free HD porn pictures" loading="lazy" decoding="async" onerror="this.src='${PLACEHOLDER_IMG}'">
                 </div>
                 <div class="pic-title">${title}</div>
             </a>
