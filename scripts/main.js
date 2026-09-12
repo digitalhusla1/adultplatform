@@ -1322,6 +1322,62 @@ function initForms() {
     }
 }
 
+// ========== RESPONSIVE AD FIT ==========
+/* Mobile fix: fixed-size ad banners (728x90 / 468x60) were being clipped on
+   small screens - the iframe box shrinks to the viewport but the ad content
+   inside stays full-width, so phones showed a blank/clipped strip.
+   Fix: scale the whole iframe down proportionally so the full ad is visible.
+   Desktop is untouched (no scaling happens when the banner fits). */
+function fitAdIframes() {
+    try {
+        document.querySelectorAll('.ad-banner-top').forEach(box => {
+            const iframe = box.querySelector('iframe');
+            if (!iframe) return;
+            // Use the ad's declared size (attributes) or rendered size as fallback
+            const w = parseInt(iframe.getAttribute('width'), 10) || iframe.offsetWidth;
+            const h = parseInt(iframe.getAttribute('height'), 10) || iframe.offsetHeight;
+            if (!w || !h) return;
+            const avail = box.clientWidth;
+            if (avail > 0 && w > avail) {
+                const scale = avail / w;
+                iframe.style.flex = '0 0 auto';
+                iframe.style.width = w + 'px';
+                iframe.style.height = h + 'px';
+                iframe.style.maxWidth = 'none';
+                iframe.style.marginLeft = '0';
+                iframe.style.marginRight = '0';
+                iframe.style.transform = 'scale(' + scale + ')';
+                iframe.style.transformOrigin = 'top left';
+                box.style.justifyContent = 'flex-start';
+                box.style.overflow = 'hidden';
+                box.style.minHeight = Math.ceil(h * scale) + 'px';
+            } else {
+                // Banner fits (desktop / large tablets) - clear any scaling
+                iframe.style.flex = '';
+                iframe.style.width = '';
+                iframe.style.height = '';
+                iframe.style.maxWidth = '';
+                iframe.style.marginLeft = '';
+                iframe.style.marginRight = '';
+                iframe.style.transform = '';
+                box.style.justifyContent = '';
+                box.style.minHeight = '';
+            }
+        });
+    } catch (error) {
+        // Ads must never break the page
+    }
+}
+
+// Re-fit ads when the window size changes (rotation, window drag on desktop)
+let _adFitTimer = null;
+window.addEventListener('resize', () => {
+    clearTimeout(_adFitTimer);
+    _adFitTimer = setTimeout(fitAdIframes, 150);
+});
+// Re-fit after everything (including ad iframes) has finished loading
+window.addEventListener('load', fitAdIframes);
+
 // ========== PAGE INITIALIZATION ==========
 /* Detect page type and initialize appropriate functionality */
 
@@ -1340,6 +1396,8 @@ function initPage() {
         initAgeVerification();
         initSearchForm();
         initForms();
+        // Scale oversized ad banners down to fit small screens (mobile)
+        fitAdIframes();
 
         // Get current page path
         const path = window.location.pathname.toLowerCase();
