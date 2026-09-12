@@ -3,26 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Search results for adult videos on HDpornlove.com. Find HD porn videos by keyword - stream free adult videos 24/7, 18+ only.">
-    <meta name="keywords" content="porn search, video search, adult search results">
+    <meta name="description" content="HD porn picture galleries - Browse thousands of free HD porn pictures and photo galleries from trending adult videos on HDpornlove.com. 18+ only.">
+    <meta name="keywords" content="porn pictures, hd porn galleries, adult photos, xxx pics, free porn images">
     <meta name="author" content="HDpornlove.com">
     <meta name="robots" content="index, follow">
-    <title>Search Results - HDPornLove Free HD Porn Videos</title>
-    <link rel="canonical" href="https://hdpornlove.com/search.html">
+    <title>HD Porn Pictures & Galleries - HDPornLove</title>
+    <link rel="canonical" href="https://hdpornlove.com/pics.html">
     <link rel="icon" type="image/svg+xml" href="favicon.svg">
-    <!-- Open Graph -->
-    <meta property="og:title" content="Search HD Porn Videos - HDPornLove">
-    <meta property="og:description" content="Search results for adult videos on HDpornlove.com. Find HD porn videos by keyword.">
-    <meta property="og:url" content="https://hdpornlove.com/search.html">
+    <meta property="og:title" content="HD Porn Pictures & Galleries - HDPornLove">
+    <meta property="og:description" content="Browse free HD porn picture galleries from trending adult videos on HDpornlove.com.">
+    <meta property="og:url" content="https://hdpornlove.com/pics.html">
     <meta property="og:type" content="website">
     <meta property="og:site_name" content="HDPornLove">
-    <!-- Twitter Card -->
     <meta name="twitter:card" content="summary">
-    <meta name="twitter:title" content="Search HD Porn Videos - HDPornLove">
-    <meta name="twitter:description" content="Search results for adult videos on HDpornlove.com. Find HD porn videos by keyword.">
-    <!-- Preconnect for faster API and ad loading -->
+    <meta name="twitter:title" content="HD Porn Pictures & Galleries - HDPornLove">
+    <meta name="twitter:description" content="Browse free HD porn picture galleries from trending adult videos.">
+    <!-- DNS prefetch for faster API loading -->
     <link rel="preconnect" href="https://www.eporner.com" crossorigin>
-    <link rel="dns-prefetch" href="https://www.eporner.com">
     <link rel="stylesheet" href="styles/main.css?v=20260912">
 </head>
 <body>
@@ -33,9 +30,7 @@
                 <span class="tagline">Free HD Adult Videos</span>
             </div>
             <button class="menu-toggle" id="menuToggle" aria-label="Toggle menu">
-                <span></span>
-                <span></span>
-                <span></span>
+                <span></span><span></span><span></span>
             </button>
             <nav id="mainNav" class="hidden">
                 <ul>
@@ -43,7 +38,7 @@
                     <li><a href="about.html">About</a></li>
                     <li><a href="categories.html">Categories</a></li>
                     <li><a href="pornstars.html">Pornstars</a></li>
-                    <li><a href="pics.html">Pics</a></li>
+                    <li><a href="pics.html" class="active">Pics</a></li>
                     <li><a href="https://chaturbate.com/in/?tour=uhEc&campaign=SbCO0&track=default" target="_blank" rel="noopener">Live Sex</a></li>
                     <li><a href="contact.html">Contact</a></li>
                 </ul>
@@ -57,7 +52,7 @@
         </div>
     </header>
 
-    <!-- CATEGORIES BAR - Horizontal scrollable category links -->
+    <!-- CATEGORIES BAR -->
     <nav class="categories-bar">
         <div class="categories-bar-inner">
             <a href="search.html?query=amateur">Amateur</a>
@@ -70,94 +65,41 @@
             <a href="search.html?query=milf">MILF</a>
             <a href="search.html?query=teen">Teen</a>
             <a href="search.html?query=threesome">Threesome</a>
-            <a href="categories.html" class="categories-bar-more">All Categories +</a>
+            <a href="categories.html" class="categories-bar-more">All Categories</a>
+            <a href="pics.html" class="categories-bar-more active">Pics</a>
         </div>
     </nav>
 
-    <!-- LEADERBOARD AD: 320x50 -->
-    <div class="ad-banner-top">
-        <script>
-          atOptions = {
-            'key' : '2cf839e21b62de3d9181c9317da38afc',
-            'format' : 'iframe',
-            'height' : 50,
-            'width' : 320,
-            'params' : {}
-          };
-        </script>
-        <script src="https://www.highperformanceformat.com/2cf839e21b62de3d9181c9317da38afc/invoke.js"></script>
-    </div>
-
     <main class="main-wrapper">
         <div class="main-content">
-        <section class="search-results">
-<h2 id="searchTitle">Search Results</h2>
-            <div id="resultsInfo" class="results-info"></div>
+        <section class="content-page">
+            <h2>HD Porn Pictures & Galleries</h2>
+            <p class="gdpr-note">Browse HD picture galleries from trending videos. Click any picture to open the full gallery with lightbox viewer.</p>
 
-            <!-- AD: 468x60 BEFORE SEARCH RESULTS -->
-            <div class="ad-banner-top">
-                <script>
-                  atOptions = {
-                    'key' : '30bebc1af24ddd4c7a0fd1dcb5b45a6c',
-                    'format' : 'iframe',
-                    'height' : 60,
-                    'width' : 468,
-                    'params' : {}
-                  };
-                </script>
-                <script src="https://www.highperformanceformat.com/30bebc1af24ddd4c7a0fd1dcb5b45a6c/invoke.js"></script>
+            <!-- PICS GRID - Filled by scripts/pics.js (initPicsPage) -->
+            <div id="picsGrid" class="pics-grid">
+                <div class="loading">Loading pictures...</div>
             </div>
 
-            <div id="searchVideos" class="video-grid">
-                <div class="loading">Loading search results...</div>
-            </div>
-<div class="pagination">
-                <button id="prevBtn" class="btn-pagination" style="display: none;">← Previous</button>
-                <span id="pageInfo"></span>
-                <button id="nextBtn" class="btn-pagination" style="display: none;">Next →</button>
+            <!-- PAGINATION -->
+            <div class="pagination">
+                <button id="picsPrev" class="btn-pagination" style="display: none;">← Previous</button>
+                <span id="picsInfo"></span>
+                <button id="picsNext" class="btn-pagination" style="display: none;">Next →</button>
             </div>
 
-            <div id="noResults" class="no-results" style="display: none;">
-                <p>No videos found for your search. Try different keywords.</p>
-                <p><a href="categories.html" class="btn-primary">Browse Categories</a></p>
+            <div class="cta-section">
+                <h3>Looking for videos instead?</h3>
+                <p><a href="index.html" class="btn-primary">Browse Videos</a></p>
             </div>
-</section>
-        
-        <!-- AD: 728x90 After Content -->
-        <div class="ad-banner-top">
-            <script>
-              atOptions = {
-                'key' : 'e0edf43f3faa73af5c6a1714a1256219',
-                'format' : 'iframe',
-                'height' : 90,
-                'width' : 728,
-                'params' : {}
-              };
-            </script>
-            <script src="https://www.highperformanceformat.com/e0edf43f3faa73af5c6a1714a1256219/invoke.js"></script>
-        </div>
+        </section>
         </div>
 
-        <!-- RIGHT SIDEBAR WITH CATEGORIES -->
         <aside class="sidebar">
-
-<!-- AD: 300x250 Sidebar -->
-            <div class="sidebar-box" style="padding:0;border:none;background:transparent;display:flex;justify-content:center;align-items:center;">
-                <script>
-                  atOptions = {
-                    'key' : 'fb5ff5dc3acc0d69a0083a14253bf8f8',
-                    'format' : 'iframe',
-                    'height' : 250,
-                    'width' : 300,
-                    'params' : {}
-                  };
-                </script>
-                <script src="https://www.highperformanceformat.com/fb5ff5dc3acc0d69a0083a14253bf8f8/invoke.js"></script>
-            </div>
-<!-- Categories Section -->
+            <!-- SIDEBAR: Popular Categories links -->
             <div class="sidebar-box">
-                <h3>Categories</h3>
-                <ul class="categories-list">
+                <h3>Popular Categories</h3>
+                <ul>
                     <li><a href="search.html?query=amateur">Amateur</a></li>
                     <li><a href="search.html?query=anal">Anal</a></li>
                     <li><a href="search.html?query=big+tits">Big Tits</a></li>
@@ -172,27 +114,8 @@
                     <li><a href="categories.html" class="view-all">All Categories →</a></li>
                 </ul>
             </div>
-
-<!-- AD: 160x600 Sidebar Skyscraper -->
-            <div class="sidebar-box" style="padding:0;border:none;background:transparent;display:flex;justify-content:center;align-items:center;">
-                <script>
-                  atOptions = {
-                    'key' : '85897e154d5bc226bd2ca581967e3afe',
-                    'format' : 'iframe',
-                    'height' : 600,
-                    'width' : 160,
-                    'params' : {}
-                  };
-                </script>
-                <script src="https://www.highperformanceformat.com/85897e154d5bc226bd2ca581967e3afe/invoke.js"></script>
-            </div>
-</aside>
+        </aside>
     </main>
-    <!-- AD: BEFORE FOOTER -->
-    <div class="ad-banner-top">
-        <script async="async" data-cfasync="false" src="https://pl28735477.effectivegatecpm.com/abb7b3551886761ac5b80dc25cab6ddc/invoke.js"></script>
-        <div id="container-abb7b3551886761ac5b80dc25cab6ddc"></div>
-    </div>
 
     <footer>
         <div class="footer-content">
@@ -220,7 +143,7 @@
         </div>
     </footer>
 
-    <!-- Age Verification Modal -->
+    <!-- Age Verification Modal (handled by main.js) -->
     <div id="ageModal" class="modal">
         <div class="modal-content">
             <h2>Age Verification</h2>
@@ -232,6 +155,8 @@
             </div>
         </div>
     </div>
+
+    <!-- main.js: shared API + site logic | pics.js: pics grid rendering -->
     <script src="scripts/main.js?v=20260912"></script>
     <script src="scripts/pics.js?v=20260912"></script>
 </body>

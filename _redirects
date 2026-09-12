@@ -1,0 +1,17 @@
+# Netlify redirect rules for single-page application behavior
+
+# Redirect /video/:id to /video.html with query param
+/video/:id  /video.html?id=:id  200
+
+# Redirect /search/:query to /search.html with query param
+/search/:query  /search.html?query=:query  200
+
+# Redirect /pics to the pictures page (clean URL)
+/pics  /pics.html  200
+
+# Redirect /gallery/:id to the gallery page with query param
+/gallery/:id  /gallery.html?id=:id  200
+
+
+# Catch-all: redirect to index for 404s (if needed)
+/* /index.html 200

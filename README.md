@@ -8,6 +8,8 @@ A serverless adult video streaming platform built with vanilla HTML, CSS, and Ja
 - 📱 Responsive dark theme (mobile-first design)
 - 🔍 Search functionality with pagination
 - 🎬 Video categorization and browsing
+- 🖼️ HD picture galleries with lightbox viewer (Pics page)
+- ⭐ Pornstars page with live API-fetched thumbnail cards
 - 📊 SEO optimized with meta tags and JSON-LD
 - ✅ GDPR/DMCA/2257 compliant
 - ⚡ Zero build step - pure vanilla stack
@@ -27,19 +29,27 @@ AdultPlatform/
 ├── search.html             # Search results
 ├── video.html              # Video player page
 ├── categories.html         # Category browsing
+├── pornstars.html          # Pornstar browsing (image cards)
+├── pics.html               # HD picture galleries grid
+├── gallery.html            # Single gallery + lightbox (gallery.html?id=VIDEO_ID)
 ├── about.html              # About page
 ├── contact.html            # Contact form
 ├── terms.html              # Terms of service
 ├── privacy.html            # Privacy policy
 ├── dmca.html               # DMCA procedure
 ├── 2257.html               # 2257 compliance
+├── 404.html                # Not-found page
 ├── scripts/
-│   └── main.js             # Core app logic
+│   ├── main.js             # Core app logic (API, age gate, search, video)
+│   └── pics.js             # Pics grid, gallery + lightbox, pornstar cards
 ├── styles/
-│   └── main.css            # Responsive styling
-└── assets/
-    └── images/             # Image assets
+│   └── main.css            # Responsive styling (incl. pics/gallery/pornstar sections)
+├── sitemap.xml             # Search engine sitemap
+├── robots.txt              # Crawler rules
+├── netlify.toml            # Netlify config
+└── _redirects              # Clean-URL redirect rules
 ```
+
 
 ## Configuration
 
@@ -54,6 +64,24 @@ const CONFIG = {
     REMOVED_CACHE_EXPIRY: 24 * 60 * 60 * 1000,
 };
 ```
+
+Customize the Pics & Pornstars features in `scripts/pics.js`:
+
+```javascript
+const PORNSTARS = [ ... ];           // Performer list shown on pornstars.html
+const PICS_PER_PAGE = 20;            // Pics grid page size
+const PORNSTAR_FETCH_CONCURRENCY = 6; // Parallel API calls for thumbnails
+```
+
+## Navigation (site-wide)
+
+The header menu appears on every page in this order:
+
+`Home · About · Categories · Pornstars · Pics · Live Sex (external, new tab) · Contact`
+
+The horizontal categories bar shows 10 quick links; the full category list
+lives on `categories.html`.
+
 
 ## API Integration
 

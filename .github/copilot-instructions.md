@@ -1,92 +1,149 @@
+
 # AI Coding Agent Instructions for HDpornlove.com
 
-## Project Overview
+## Architecture Overview
 
-Serverless adult video streaming platform — **pure vanilla HTML/CSS/JS** (no Node.js, no npm, no bundler). Integrates with **Eporner API v2** for video content. Deployed on **Netlify** with auto-deploy from git push. Ad-supported via highperformanceformat.com/effectivegatecpm ad scripts.
+**Stack:** Vanilla HTML/CSS/JS, serverless, zero-build deployment. All application logic lives in a single `scripts/main.js` entry point (~1500 lines). No frameworks, modules, npm, or build tools—files deploy directly to Netlify.
 
-## Architecture (Single-File JS)
+**Lifecycle:** On page load, `DOMContentLoaded` fires `initPage()`, which inspects `window.location.pathname` and calls the appropriate page-specific init (`initHomePage()`, `initSearchPage()`, `initVideoPage()`, etc.). All state persists in global variables (`let currentPageXxx`, `_removedIdsCache`) and localStorage.
 
-All application logic lives in `scripts/main.js`. There is no framework, no modules, no build step.
+**Architecture Decision:** Single-file approach prioritizes simplicity, zero configuration, and instant deployment. Trade-off: no module system means careful namespace management.
 
-**Initialization flow:** `DOMContentLoaded` → `initPage()` → detects page by `window.location.pathname` → calls page-specific init (`initHomePage`, `initSearchPage`, `initVideoPage`). Every page also runs `initMenuToggle()`, `initAgeVerification()`, `initSearchForm()`, `initForms()`.
+## Critical API Integration Pattern
 
-**Data flow:** API fetch → validate response → filter removed IDs (in-memory `Set`) → `createVideoCard()` builds HTML string → `renderVideos()` sets `.innerHTML` → `setupPagination()` / `setupTrendingPagination()` wires prev/next buttons.
+The Eporner API v2 pattern is **canonical and mandatory**—all new API functions follow this template:
 
-**State management:** Global `let` variables per section (`currentPageSearch`, `currentPageMostViewed`, `currentPageTopRated`, `currentPageNewest`, `currentPage`, `currentQuery`). No framework state — pagination buttons mutate these directly. localStorage stores `age_verified`, `age_verified_time`, and `eporner_removed_ids` + `_time`.
+```javascript
+async function getXxxVideos(page = 1) {
+    try {
+        const url = new URL(`${CONFIG.API_BASE}video/search/`);
+        url.searchParams.append('query', 'all');
+        url.searchParams.append('page', page);
+        url.searchParams.append('per_page', CONFIG.VIDEOS_PER_PAGE);
+        url.searchParams.append('thumbsize', CONFIG.THUMB_SIZE);
+        url.searchParams.append('order', 'top-weekly'); // Vary by section
+        url.searchParams.append('format', 'json');
 
-## Critical Patterns — Follow These Exactly
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 10000);
+        const response = await fetch(url.toString(), { signal: controller.signal });
+        clearTimeout(timeout);
 
-### API Functions
-Every API function follows this template (copy `getMostViewedVideos()` for new sections):
-1. Build URL with `new URL()` + `url.searchParams.append()`
-2. Create `AbortController` with **10s timeout** (`setTimeout(() => controller.abort(), 10000)`)
-3. `fetch()` with `{ signal: controller.signal }`, then `clearTimeout()`
-4. Validate `response.ok`, then `response.json()`
-5. Check `data.videos` is Array; filter against `_removedIdsCache` Set
+        if (!response.ok) throw new Error(`API HTTP Error ${response.status}`);
+        const data = await response.json();
+        if (!data.videos?.length) return { videos: [], page: 1, total_pages: 0 };
 
-Valid `order` values: `latest`, `longest`, `shortest`, `top-rated`, `most-popular`, `top-weekly`, `top-monthly`, `latest-views`, `newest`
+        // CRITICAL: Filter removed videos in-memory (0ms performance)
+        if (_removedIdsCache?.size > 0) {
+            data.videos = data.videos.filter(v => v?.id && !_removedIdsCache.has(v.id));
+        }
+        return data;
+    } catch (error) {
+        if (error.name === 'AbortError') throw new Error('API timeout');
+        throw error;
+    }
+}
+```
 
-### XSS Prevention — Mandatory
-- **All** user-sourced text → `escapeHtml(text)` before `.innerHTML` (uses `div.textContent`/`div.innerHTML` pattern)
-- **All** user input in URLs → `encodeURIComponent()`
-- Video IDs are 11-char case-sensitive alphanumeric — still escape in HTML context
+**Key invariants:**
+- 10-second AbortController timeout (non-negotiable)
+- JSON parse validation (`if (!data.videos || !Array.isArray(...))`)
+- Removed cache filtering against `_removedIdsCache` Set (live in-memory, not on every fetch)
+- Cache pre-populated from localStorage at load time
+- Order param varies: `top-weekly` (trending), `latest-views` (most viewed), `top-rated`, `newest`
 
-### Adding a New Video Section to Home Page
-1. Add `let currentPageXxx = 1;` to page state
-2. Copy an existing API function, change `order` param
-3. Add HTML in `index.html`: `<div id="xxxVideos" class="video-grid"></div>` + pagination buttons (`prevXxxBtn`, `nextXxxBtn`, `pageXxxInfo`)
-4. Add to `Promise.all()` in `initHomePage()`
-5. Call `renderVideos(data.videos, 'xxxVideos')` + `setupTrendingPagination(data, 'xxx')`
-6. Add the new `sectionType` case in `setupTrendingPagination()` switch
+## DOM Rendering & XSS Prevention
 
-### URL Parameter Convention
-- `video.html?id=[11-char-videoId]` — Video detail
-- `search.html?query=[encoded-string]` — Search results
-- Extract via `getUrlParam(name)` (wraps `URLSearchParams`)
+**Rendering:** All video grids use `renderVideos(videosArray, containerId)`, which populates `.innerHTML` with escaped, safe HTML.
 
-## CSS Architecture
+**XSS Rules:**
+1. **All user input → `escapeHtml(text)`** before inserting into DOM (e.g., search titles, video names)
+2. **All URLs containing user data → `encodeURIComponent(value)`** in query strings (e.g., `?query=${encodeURIComponent(searchTerm)}`)
+3. **Video IDs are 11-char alphanumeric; validate before API calls:** `if (!videoId || videoId.length !== 11) throw`
 
-**Theming:** All colors in `:root` variables in `styles/main.css` — `--primary-bg`, `--secondary-bg`, `--accent-color`, `--border-color`, etc. Change one variable to update entire site.
+Example (safe):
+```javascript
+// ✅ CORRECT
+window.location.href = `video.html?id=${encodeURIComponent(videoId)}`;
+const title = escapeHtml(video.title); // "Safe & Sexy" → "Safe &amp; Sexy"
 
-**Responsive breakpoints (mobile-first):**
-- `<480px`: 1 column, compact padding
-- `480-767px`: 1 column, sidebar hidden
-- `768-1023px`: 2-column grid, sidebar hidden, hamburger menu
-- `1024-1199px`: 3-column grid, 300px sidebar visible
-- `≥1200px`: 4-column grid, max-width 1400px
+// ❌ WRONG
+window.location.href = `video.html?id=${videoId}`; // Direct interpolation
+document.innerHTML = `<h1>${video.title}</h1>`; // XSS vector
+```
 
-**Layout pattern:** `.main-wrapper` = flex container; `.main-content` = `flex: 1`; `.sidebar` = 300px sticky. Home page (`index.html`) uses full-width `<main>` without sidebar.
+## Page-Specific Workflows
+
+| Page | Init Function | State Var | Key Files |
+|------|---------------|-----------|-----------|
+| Home | `initHomePage()` | `currentPageXxx` (4 vars) | `index.html`, 4 API calls in `Promise.all()` |
+| Video | `initVideoPage()` | Single video object + related videos | `video.html`, `getVideo(id)`, `searchVideos(query)` |
+| Search | `initSearchPage()` | `currentPageSearch` | `search.html`, `searchVideos(query, page)`, pagination |
+| Categories | `initCategoriesPage()` | Query param filtering | `categories.html`, dynamic rendering |
+
+**Home page optimization:** 4 API sections load in parallel via `Promise.all()`, reducing load time from ~8s to ~2s. Each section has its own pagination state (`currentPageMostViewed`, `currentPageTopRated`, etc.).
+
+## Adding a New Video Section
+
+1. **State:** Add `let currentPageNewSection = 1;` at the top of `scripts/main.js`
+2. **API function:** Copy `getMostViewedVideos()`, change the `order` param (see `API_DOCUMENTATION.md`)
+3. **HTML:** Add `<div id="newSectionVideos" class="video-grid"></div>` + prev/next pagination buttons to `index.html`
+4. **Init:** Add your API call to the `Promise.all()` array in `initHomePage()`
+5. **Render:** Call `renderVideos(data.videos, 'newSectionVideos')`
+6. **Pagination:** Call `setupTrendingPagination(data, 'newSection')` and add the case to the switch statement inside that function
+
+## Configuration & Performance
+
+**`CONFIG` object** (top of `scripts/main.js`):
+- `API_BASE`, `THUMB_SIZE`, `VIDEOS_PER_PAGE` (20), `AGE_VERIFIED_EXPIRY` (30 days), `REMOVED_CACHE_EXPIRY` (24 hours)
+
+**Removed Videos Cache:**
+- Fetched once at startup via `getRemovedIds()` (blocks if needed, but cached)
+- Stored in-memory as a `Set` for O(1) lookups
+- Persisted to localStorage with timestamp; 24h expiry triggers refresh
+- CORS fallback: if API fails, treat as empty set (graceful degradation)
+
+**Video Hover Preview:**
+- Cycles thumbnails every 600ms on mouseover (preloads images for smoothness)
+- Event delegation on document for dynamic content support
+- Resets to default thumbnail on mouseleave
+
+## URL Conventions
+
+- **Video:** `video.html?id=IsabYDAiqXa` (11-char ID, case-sensitive)
+- **Search:** `search.html?query=teen` (encoded search term)
+- **Category:** `categories.html?category=mature` (optional filtering)
+- **Extraction:** `getUrlParam('query')` returns decoded value or null
 
 ## External Integrations
 
-- **Eporner API v2** (`https://www.eporner.com/api/v2/`) — No auth needed. `/video/search/`, `/video/id/`, `/video/removed/`. The removed endpoint has CORS issues; code gracefully falls back to empty Set.
-- **Netlify Forms** — `<form method="POST" netlify>` attribute on contact + newsletter forms. No backend code needed.
-- **Ad networks** — Inline `<script>` tags from highperformanceformat.com and effectivegatecpm.com. Ad blockers won't break the page.
-- **Netlify deployment** — Config in `netlify.toml`. URL redirects: `/video/:id` → `/video.html?id=:id`, `/search/:query` → `/search.html?query=:query`.
+- **Eporner API v2:** Base `https://www.eporner.com/api/v2/`, endpoints: `/video/search/`, `/video/id/`, `/video/removed/` (see `API_DOCUMENTATION.md`)
+- **Netlify Forms:** `<form method="POST" netlify>` auto-submits to Netlify backend
+- **Ad Networks:** Scripts from `highperformanceformat.com`, `effectivegatecpm.com` (non-blocking, async)
+- **Netlify Redirects:** Defined in `netlify.toml` (URL rewriting, cache headers, security headers)
 
-## Key Files
+## Key Files Reference
 
-| File | Role |
-|------|------|
-| `scripts/main.js` | ALL app logic: API, rendering, pagination, age gate, navigation |
-| `styles/main.css` | Dark theme, responsive grid, sidebar, all component styles |
-| `index.html` | Home with 4 sections (trending/viewed/rated/newest) + ads |
-| `video.html` | Video embed + info + related videos + sidebar |
-| `search.html` | Search results + pagination + sidebar |
-| `netlify.toml` | Deploy config, URL redirects, cache/security headers |
-| `API_DOCUMENTATION.md` | Full Eporner API reference |
+- `scripts/main.js`: All logic (1500+ lines)—API, rendering, pagination, age gate, menu toggle, video preview
+- `styles/main.css`: CSS variables, responsive grid (mobile-first), sidebar, dark theme
+- `index.html`, `video.html`, `search.html`: Minimal HTML templates; logic via JS
+- `netlify.toml`: Build config, redirects (`/video/:id` → `video.html?id=:id`), cache headers
+- `API_DOCUMENTATION.md`: Eporner API endpoint reference, response schema, sort orders
 
-## Debugging
+## Debugging & Testing
 
-- **Test video page:** `video.html?id=IsabYDAiqXa`
-- **Clear age gate:** `localStorage.removeItem('age_verified'); localStorage.removeItem('age_verified_time'); location.reload()`
+- **Test video:** `video.html?id=IsabYDAiqXa` (valid, use for smoke tests)
+- **Clear age gate:** Run in console: `localStorage.clear(); location.reload()`
 - **Inspect removed cache:** `localStorage.getItem('eporner_removed_ids')`
-- **API monitoring:** DevTools Network tab → filter `eporner.com`
-- **Mobile test:** DevTools responsive mode at 375px, 768px, 1024px
+- **API monitor:** DevTools Network → filter `eporner.com`, check status/response
+- **Mobile preview:** DevTools responsive mode at 375px, 768px, 1024px
+- **Ad script errors:** Check console; ad containers still render empty if blocked (CSS handles layout)
 
-## Known Limitations
+## Known Limitations & Trade-Offs
 
-- `/video/removed/` API has CORS restrictions — code catches errors and falls back to empty Set
-- Removed IDs cache in localStorage can grow large; 24h expiry mitigates this
-- Mobile nav doesn't lock body scroll when open
-- Ad scripts load async; blocked ads leave empty containers (non-breaking)
+1. **No module system** → single large `main.js`; namespace carefully to avoid collisions
+2. **localStorage size** → removed IDs cache can grow large; 24h expiry helps but may not flush fast enough in high-volume scenarios
+3. **CORS restrictions** → `/video/removed/` API may fail; fallback treats as empty set (no blocking)
+4. **Mobile nav** → doesn't lock body scroll during open; user can scroll background
+5. **Async ads** → ad script loading is async; if blocked, containers render empty (CSS margin-collapse handles spacing)
+6. **No build step** → all files must be valid ES6+ vanilla JS; no transpilation, no tree-shaking

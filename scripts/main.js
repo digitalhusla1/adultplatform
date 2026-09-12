@@ -116,7 +116,7 @@ async function getMostViewedVideos(page = 1) {
         url.searchParams.append('page', page);
         url.searchParams.append('per_page', CONFIG.VIDEOS_PER_PAGE);
         url.searchParams.append('thumbsize', CONFIG.THUMB_SIZE);
-        url.searchParams.append('order', 'latest-views'); // Most viewed
+        url.searchParams.append('order', 'top-monthly'); // Most viewed this month (API has no all-time views order)
         url.searchParams.append('format', 'json');
 
         const controller = new AbortController();
@@ -198,7 +198,7 @@ async function getNewestVideos(page = 1) {
         url.searchParams.append('page', page);
         url.searchParams.append('per_page', CONFIG.VIDEOS_PER_PAGE);
         url.searchParams.append('thumbsize', CONFIG.THUMB_SIZE);
-        url.searchParams.append('order', 'newest'); // Newest first
+        url.searchParams.append('order', 'latest'); // Newest uploads (API default sort by date added) first
         url.searchParams.append('format', 'json');
 
         const controller = new AbortController();
@@ -584,7 +584,11 @@ function escapeHtml(text) {
     try {
         const div = document.createElement('div');
         div.textContent = text;
-        return div.innerHTML;
+        // div.innerHTML escapes &, < and > but NOT quotes - escape them manually
+        // so values are safe to use inside double OR single quoted attributes
+        return div.innerHTML
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
     } catch (error) {
         return '';
     }
@@ -745,14 +749,18 @@ async function initSearchPage() {
         const data = await searchVideos(query, 1);
         const endTime = performance.now();
         // Update results info
+        // NOTE: API returns total_count as a string (e.g. "1234"), so parse it
+        const totalCount = parseInt(data.total_count, 10);
+        const hasResults = !isNaN(totalCount) && totalCount > 0 && data.videos && data.videos.length > 0;
         const resultsInfo = document.getElementById('resultsInfo');
+        const noResults = document.getElementById('noResults');
         if (resultsInfo) {
-            if (data.total_count === 0) {
+            if (!hasResults) {
                 resultsInfo.textContent = 'No videos found for this search.';
-                document.getElementById('noResults').style.display = 'block';
+                if (noResults) noResults.style.display = 'block';
                 container.style.display = 'none';
             } else {
-                resultsInfo.textContent = `Found ${data.total_count} results`;
+                resultsInfo.textContent = `Found ${totalCount} results`;
             }
         }
 
@@ -883,14 +891,17 @@ async function initVideoPage() {
         
         container.innerHTML = `<iframe 
             src="${embedUrl}" 
-            allowfullscreen 
+            allowfullscreen
+            webkitallowfullscreen
+            mozallowfullscreen
             frameborder="0"
-            allow="autoplay; encrypted-media"
-            style="width: 100%; height: 100%; min-height: 400px;">
+            scrolling="no"
+            allow="autoplay; encrypted-media; fullscreen; picture-in-picture"
+            style="width: 100%; height: 100%; border: 0; display: block;">
         </iframe>`;
 
-        // Update page title
-        document.title = `${escapeHtml(video.title)} - HDpornlove.com`;
+        // Update page title (use raw title - document.title renders text, not HTML entities)
+        document.title = `${video.title} - HDpornlove.com`;
 
         // Update video info section
         const videoInfo = document.getElementById('videoInfo');
@@ -975,8 +986,9 @@ async function initVideoPage() {
         // This prevents blocking the main video from displaying
         loadRelatedVideos(video.keywords).catch(() => {});
     } catch (error) {
-        document.getElementById('noVideo').style.display = 'block';
-        container.style.display = 'none';
+        const noVideo = document.getElementById('noVideo');
+        if (noVideo) noVideo.style.display = 'block';
+        if (container) container.style.display = 'none';
     }
 }
 
@@ -1302,10 +1314,8 @@ function initForms() {
             form.addEventListener('submit', (e) => {
             });
 
-            // Setup form validation if needed
-            form.addEventListener('invalid', (e) => {
-                e.preventDefault();
-            }, true);
+            // NOTE: Do NOT preventDefault on 'invalid' events - that suppresses
+            // native browser validation messages (form would appear to do nothing)
         });
 
     } catch (error) {

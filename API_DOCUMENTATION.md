@@ -82,9 +82,9 @@ Get list of all removed video IDs. Returns all removed IDs in a single call (can
 
 **Search Functions:**
 1. `searchVideos(query, page)` - General search with `order='top-weekly'`
-2. `getMostViewedVideos(page)` - `order='latest-views'`
+2. `getMostViewedVideos(page)` - `order='top-monthly'`
 3. `getTopRatedVideos(page)` - `order='top-rated'`
-4. `getNewestVideos(page)` - `order='newest'`
+4. `getNewestVideos(page)` - `order='latest'`
 
 **Configuration:**
 - `CONFIG.API_BASE = 'https://www.eporner.com/api/v2/'`

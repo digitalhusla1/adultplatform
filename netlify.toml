@@ -1,15 +1,8 @@
 # Netlify Configuration for HDpornlove.com
 
 [build]
-# No build command needed for static site
 command = "echo 'Static site - no build required'"
 publish = "."
-
-# Cache buster - increment when updating JavaScript
-# Version: 2
-
-[build.environment]
-# Environment variables if needed
 
 # URL redirects for dynamic pages
 [[redirects]]
