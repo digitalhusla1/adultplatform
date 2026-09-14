@@ -794,7 +794,8 @@ async function initSearchPage() {
         // SEO: ItemList structured data for the result grid
         injectItemListSchema(data.videos);
     } catch (error) {
-        container.innerHTML = '<div class="no-results"><p>⚠️ Error loading search results. ' + error.message + '</p></div>';
+        console.error('initSearchPage error:', error);
+        container.innerHTML = '<div class="no-results"><p>⚠️ Error loading search results. Please refresh the page or try a different search.</p></div>';
     }
 }
 
@@ -1104,6 +1105,7 @@ async function initVideoPage() {
         // This prevents blocking the main video from displaying
         loadRelatedVideos(video.keywords).catch(() => {});
     } catch (error) {
+        console.error('initVideoPage error:', error);
         const noVideo = document.getElementById('noVideo');
         if (noVideo) noVideo.style.display = 'block';
         if (container) container.style.display = 'none';
@@ -1508,9 +1510,14 @@ window.addEventListener('load', () => { setTimeout(fitAdIframes, 3000); });
  */
 function initPage() {
     try {
-        // PERFORMANCE: Preload removed video IDs in background so first API call doesn't block
-        // This loads from cache instantly or fetches fresh copy without blocking page init
-        getRemovedIds().catch(() => {});
+        // NOTE: We do NOT auto-fetch the removed-videos list here anymore.
+        // That list is ~46MB and downloading it on every page load saturated the
+        // browser's network connections to eporner.com, causing the concurrent
+        // searchVideos()/getVideo() API calls to fail with "NetworkError when
+        // attempting to fetch resource." Removed-video filtering still works from
+        // the localStorage cache (pre-populated at the top of this file); if no
+        // cache exists, videos simply show unfiltered (removed ones return null
+        // from getVideo() anyway, since the API returns an empty array for them).
 
         // Initialize on all pages
         initMenuToggle();
