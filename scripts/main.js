@@ -662,26 +662,26 @@ function getUrlParam(name) {
  * Initialize home page with featured videos - loads all sections in PARALLEL for better performance
  */
 async function initHomePage() {
-    const container = document.getElementById('featuredVideos');
-    if (!container) {
+    // Check if ANY of the video sections exist (the page may not have all 4)
+    const featuredContainer = document.getElementById('featuredVideos');
+    const newestContainer = document.getElementById('newestVideos');
+    const mostViewedContainer = document.getElementById('mostViewedVideos');
+    const topRatedContainer = document.getElementById('topRatedVideos');
+
+    // If none of the home-page video containers exist, we're not on the home page
+    if (!featuredContainer && !newestContainer && !mostViewedContainer && !topRatedContainer) {
         return;
     }
 
     try {
-        // Show loading states for all sections
-        container.innerHTML = '<div class="loading">Loading featured videos...</div>';
-        const mostViewedContainer = document.getElementById('mostViewedVideos');
-        const topRatedContainer = document.getElementById('topRatedVideos');
-        const newestContainer = document.getElementById('newestVideos');
-        
+        // Show loading states for all sections that exist
+        if (featuredContainer) featuredContainer.innerHTML = '<div class="loading">Loading featured videos...</div>';
         if (mostViewedContainer) mostViewedContainer.innerHTML = '<div class="loading">Loading videos...</div>';
         if (topRatedContainer) topRatedContainer.innerHTML = '<div class="loading">Loading videos...</div>';
         if (newestContainer) newestContainer.innerHTML = '<div class="loading">Loading videos...</div>';
 
         // PERFORMANCE OPTIMIZATION: Load all 4 sections IN PARALLEL instead of sequential
         // This reduces load time from ~8 seconds to ~2 seconds (75% improvement)
-        const startTime = performance.now();
-
         const [trendingData, viewedData, ratedData, newestData] = await Promise.all([
             searchVideos('all', 1).catch(err => {
                 return { videos: [], page: 1, total_pages: 0 };
@@ -697,19 +697,23 @@ async function initHomePage() {
             })
         ]);
 
-        const endTime = performance.now();
-        // Render all sections
-        renderVideos(trendingData.videos, 'featuredVideos');
-        setupPagination(trendingData, 'all');
-
-        renderVideos(viewedData.videos, 'mostViewedVideos');
-        setupTrendingPagination(viewedData, 'mostViewed');
-
-        renderVideos(ratedData.videos, 'topRatedVideos');
-        setupTrendingPagination(ratedData, 'topRated');
-
-        renderVideos(newestData.videos, 'newestVideos');
-        setupTrendingPagination(newestData, 'newest');
+        // Render only to sections that exist on the page
+        if (featuredContainer) {
+            renderVideos(trendingData.videos, 'featuredVideos');
+            setupPagination(trendingData, 'all');
+        }
+        if (mostViewedContainer) {
+            renderVideos(viewedData.videos, 'mostViewedVideos');
+            setupTrendingPagination(viewedData, 'mostViewed');
+        }
+        if (topRatedContainer) {
+            renderVideos(ratedData.videos, 'topRatedVideos');
+            setupTrendingPagination(ratedData, 'topRated');
+        }
+        if (newestContainer) {
+            renderVideos(newestData.videos, 'newestVideos');
+            setupTrendingPagination(newestData, 'newest');
+        }
 
         // SEO: set og:image to the first video thumbnail so social shares show an image
         const first = (trendingData.videos && trendingData.videos[0]) ||
@@ -721,7 +725,12 @@ async function initHomePage() {
         }
     } catch (error) {
         console.error('initHomePage error:', error);
-        container.innerHTML = '<div class="no-results"><p>⚠️ Error loading videos. Please refresh the page.</p></div>';
+        // Show error in whichever containers exist
+        const errMsg = '<div class="no-results"><p>⚠️ Error loading videos. Please refresh the page.</p></div>';
+        if (featuredContainer) featuredContainer.innerHTML = errMsg;
+        if (newestContainer) newestContainer.innerHTML = errMsg;
+        if (mostViewedContainer) mostViewedContainer.innerHTML = errMsg;
+        if (topRatedContainer) topRatedContainer.innerHTML = errMsg;
     }
 }
 
