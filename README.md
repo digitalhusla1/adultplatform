@@ -70,7 +70,7 @@ The header menu appears on every page in this order:
 `Home · About · Categories · Pornstars · Pics · Live Sex (external, new tab) · AI Girlfriend (external, new tab) · Contact`
 
 - **Live Sex** → Chaturbate affiliate link (opens in a new tab)
-- **AI Girlfriend** → Fanvue referral link (`https://www.fanvue.com/signup?referral=FV-MYV1N3`, opens in a new tab)
+- **AI Girlfriend** → OurDream AI referral link (`https://www.ourdreamersai13.com/9QPXPZL/2CTPL/`, opens in a new tab)
 
 The horizontal categories bar shows 10 quick links (Amateur, Anal, Big Tits, Blowjob, Hardcore, Lesbian, Mature, MILF, Teen, Threesome); the full 27-category list lives on `categories.html`.
 
