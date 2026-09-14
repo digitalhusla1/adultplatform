@@ -3,6 +3,12 @@
    API Integration, Age Verification, Forms
    ======================================== */
 
+// ========== ORIGINAL FETCH SAFETY ==========
+// Save a reference to the native fetch BEFORE any third-party ad scripts
+// (JuicyAds etc.) load, so our API calls can never be broken by ad scripts
+// that might patch/override window.fetch.
+const _origFetch = window.fetch ? window.fetch.bind(window) : null;
+
 // ========== CONFIGURATION ==========
 const CONFIG = {
     API_BASE: 'https://www.eporner.com/api/v2/',  // Eporner API endpoint
@@ -73,7 +79,7 @@ async function searchVideos(query = 'all', page = 1, perPage = CONFIG.VIDEOS_PER
         const controller = new AbortController();
         const timeout = setTimeout(() => controller.abort(), 10000); // 10 second timeout
 
-        const response = await fetch(url.toString(), { signal: controller.signal });
+        const response = await (_origFetch || fetch)(url.toString(), { signal: controller.signal });
         clearTimeout(timeout);
 
         // Handle HTTP errors
@@ -123,7 +129,7 @@ async function getMostViewedVideos(page = 1) {
         const controller = new AbortController();
         const timeout = setTimeout(() => controller.abort(), 10000);
 
-        const response = await fetch(url.toString(), { signal: controller.signal });
+        const response = await (_origFetch || fetch)(url.toString(), { signal: controller.signal });
         clearTimeout(timeout);
 
         if (!response.ok) {
@@ -164,7 +170,7 @@ async function getTopRatedVideos(page = 1) {
         const controller = new AbortController();
         const timeout = setTimeout(() => controller.abort(), 10000);
 
-        const response = await fetch(url.toString(), { signal: controller.signal });
+        const response = await (_origFetch || fetch)(url.toString(), { signal: controller.signal });
         clearTimeout(timeout);
 
         if (!response.ok) {
@@ -205,7 +211,7 @@ async function getNewestVideos(page = 1) {
         const controller = new AbortController();
         const timeout = setTimeout(() => controller.abort(), 10000);
 
-        const response = await fetch(url.toString(), { signal: controller.signal });
+        const response = await (_origFetch || fetch)(url.toString(), { signal: controller.signal });
         clearTimeout(timeout);
 
         if (!response.ok) {
@@ -253,7 +259,7 @@ async function getVideo(videoId) {
         const controller = new AbortController();
         const timeout = setTimeout(() => controller.abort(), 10000);
 
-        const response = await fetch(url.toString(), { signal: controller.signal });
+        const response = await (_origFetch || fetch)(url.toString(), { signal: controller.signal });
         clearTimeout(timeout);
 
         if (!response.ok) {
@@ -320,7 +326,7 @@ async function getRemovedIds() {
             const controller = new AbortController();
             const timeout = setTimeout(() => controller.abort(), 10000);
 
-            const response = await fetch(url, { signal: controller.signal });
+            const response = await (_origFetch || fetch)(url, { signal: controller.signal });
             clearTimeout(timeout);
 
             if (!response.ok) {
@@ -714,6 +720,7 @@ async function initHomePage() {
             updateDynamicSEO({ image: first.default_thumb.src });
         }
     } catch (error) {
+        console.error('initHomePage error:', error);
         container.innerHTML = '<div class="no-results"><p>⚠️ Error loading videos. Please refresh the page.</p></div>';
     }
 }
