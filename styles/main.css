@@ -432,7 +432,7 @@ nav ul {
 nav a {
     color: #ccc;
     font-size: 0.82rem;
-    padding: 5px 10px;
+    padding: 5px 8px;
     border-radius: 4px;
     transition: all var(--transition);
     display: inline-block;
@@ -450,8 +450,8 @@ nav a.active {
 
 .search-bar {
     flex: 1;
-    max-width: 560px;
-    min-width: 180px;
+    max-width: 420px;
+    min-width: 160px;
     margin-left: auto;
 }
 

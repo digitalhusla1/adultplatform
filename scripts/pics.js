@@ -25,6 +25,30 @@ const PORNSTARS = [
 
 const PICS_PER_PAGE = 20;              // Pics grid uses the same page size as the rest of the site
 const PORNSTAR_FETCH_CONCURRENCY = 6;  // Parallel API calls when loading pornstar thumbnails
+// Cache pornstar thumbnails in localStorage for 24h so repeat visits render
+// instantly instead of re-fetching all thumbnails from the API every time.
+const PORNSTAR_THUMB_CACHE_KEY = 'pornstar_thumb_cache';
+const PORNSTAR_THUMB_CACHE_EXPIRY = 24 * 60 * 60 * 1000; // 24 hours
+
+/** Read the pornstar thumbnail cache (returns {} if missing/expired). */
+function getPornstarThumbCache() {
+    try {
+        const raw = localStorage.getItem(PORNSTAR_THUMB_CACHE_KEY);
+        if (!raw) return {};
+        const parsed = JSON.parse(raw);
+        if (!parsed || Date.now() - (parsed._ts || 0) > PORNSTAR_THUMB_CACHE_EXPIRY) return {};
+        return parsed.data && typeof parsed.data === 'object' ? parsed.data : {};
+    } catch (e) {
+        return {};
+    }
+}
+
+/** Persist the pornstar thumbnail cache to localStorage. */
+function setPornstarThumbCache(data) {
+    try {
+        localStorage.setItem(PORNSTAR_THUMB_CACHE_KEY, JSON.stringify({ _ts: Date.now(), data }));
+    } catch (e) { /* Ignore cache write errors (e.g. storage full) */ }
+}
 
 // Inline SVG placeholder shown while a thumbnail loads / if the API has no image
 const PLACEHOLDER_IMG =
@@ -71,7 +95,7 @@ function createPornstarCard(name, thumbUrl) {
  */
 async function fetchPornstarThumb(name) {
     try {
-        const data = await searchVideos(name, 1);
+        const data = await searchVideos(name, 1, 1);
         const video = data && data.videos && data.videos[0];
         return (video && video.default_thumb && video.default_thumb.src) || null;
     } catch (error) {
@@ -91,13 +115,22 @@ async function initPornstarsPage() {
     // Paint all cards immediately with placeholders (fast perceived loading)
     grid.innerHTML = PORNSTARS.map(name => createPornstarCard(name, null)).join('');
 
+    // Reuse cached thumbnails when available so repeat visits load instantly
+    const thumbCache = getPornstarThumbCache();
+    let cacheChanged = false;
+
     // Simple concurrency-limited runner
     let index = 0;
     async function worker() {
         while (index < PORNSTARS.length) {
             const i = index++;
             const name = PORNSTARS[i];
-            const thumb = await fetchPornstarThumb(name);
+            let thumb = thumbCache[name];
+            if (!thumb) {
+                thumb = await fetchPornstarThumb(name);
+                thumbCache[name] = thumb;
+                cacheChanged = true;
+            }
             // Update only this card's <img> (cards keep their original DOM order)
             const card = grid.children[i];
             if (card && thumb) {
@@ -112,6 +145,7 @@ async function initPornstarsPage() {
     const workers = [];
     for (let w = 0; w < PORNSTAR_FETCH_CONCURRENCY; w++) workers.push(worker());
     await Promise.all(workers);
+    if (cacheChanged) setPornstarThumbCache(thumbCache);
 }
 
 // ========== PICS PAGE ==========
@@ -155,7 +189,7 @@ async function initPicsPage() {
     grid.innerHTML = '<div class="loading">Loading pictures...</div>';
 
     try {
-        const data = await searchVideos('all', page);
+        const data = await getNewestVideos(page);
 
         if (!data.videos || data.videos.length === 0) {
             grid.innerHTML = '<div class="no-results"><p>No pictures found. Try again later.</p></div>';

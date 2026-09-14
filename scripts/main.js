@@ -43,13 +43,14 @@ try {
  * Fetch videos from Eporner API with error handling
  * @param {string} query - Search query (e.g., 'teen', 'mature', 'all')
  * @param {number} page - Page number for pagination (starts at 1)
+ * @param {number} [perPage=CONFIG.VIDEOS_PER_PAGE] - Number of videos per page to request
  * @returns {Promise<Object>} - API response with videos array and pagination info
  * @throws {Error} - If API call fails or returns error
  * 
  * EXAMPLE: searchVideos('amateur', 2)
  * FILTERS OUT: Removed videos (checked against getRemovedIds)
  */
-async function searchVideos(query = 'all', page = 1) {
+async function searchVideos(query = 'all', page = 1, perPage = CONFIG.VIDEOS_PER_PAGE) {
     try {
         // Validate inputs
         if (!query || query.trim() === '') {
@@ -63,7 +64,7 @@ async function searchVideos(query = 'all', page = 1) {
         const url = new URL(`${CONFIG.API_BASE}video/search/`);
         url.searchParams.append('query', query);
         url.searchParams.append('page', page);
-        url.searchParams.append('per_page', CONFIG.VIDEOS_PER_PAGE);
+        url.searchParams.append('per_page', perPage);
         url.searchParams.append('thumbsize', CONFIG.THUMB_SIZE);
         url.searchParams.append('order', 'top-weekly');
         url.searchParams.append('format', 'json');
@@ -944,6 +945,11 @@ function injectItemListSchema(videos) {
                 'name': v.title || 'Free HD Porn Video'
             }))
         };
+        // Remove any existing ItemList schema script tags so we don't
+        // accumulate duplicate JSON-LD blocks on repeated calls (pagination, etc.)
+        const existingScripts = document.querySelectorAll('script[data-itemlist-schema]');
+        existingScripts.forEach(s => s.remove());
+
         const script = document.createElement('script');
         script.type = 'application/ld+json';
         script.setAttribute('data-itemlist-schema', 'true');

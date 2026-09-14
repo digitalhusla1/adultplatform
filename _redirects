@@ -13,5 +13,7 @@
 /gallery/:id  /gallery.html?id=:id  200
 
 
-# Catch-all: redirect to index for 404s (if needed)
-/* /index.html 200
+# Catch-all: serve the 404 page for unknown paths (matches netlify.toml).
+# NOTE: a "200" catch-all to index.html would create soft-404s (search engines
+# indexing infinite non-existent URLs as valid pages), so we use 404 here.
+/*  /404.html  404
