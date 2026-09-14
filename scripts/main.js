@@ -1488,6 +1488,9 @@ window.addEventListener('resize', () => {
 });
 // Re-fit after everything (including ad iframes) has finished loading
 window.addEventListener('load', fitAdIframes);
+// JuicyAds injects its ad iframes asynchronously (after the load event),
+// so re-fit once more after a short delay to scale oversized banners on mobile.
+window.addEventListener('load', () => { setTimeout(fitAdIframes, 3000); });
 
 // ========== PAGE INITIALIZATION ==========
 /* Detect page type and initialize appropriate functionality */

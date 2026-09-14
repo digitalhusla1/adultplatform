@@ -119,7 +119,7 @@ document.innerHTML = `<h1>${video.title}</h1>`; // XSS vector
 
 - **Eporner API v2:** Base `https://www.eporner.com/api/v2/`, endpoints: `/video/search/`, `/video/id/`, `/video/removed/` (see `API_DOCUMENTATION.md`)
 - **Netlify Forms:** `<form method="POST" netlify>` auto-submits to Netlify backend
-- **Ad Networks:** Scripts from `highperformanceformat.com`, `effectivegatecpm.com` (non-blocking, async)
+- **Ad Network:** JuicyAds (zone-based `<ins>` tags via `poweredby.jads.co`, plus a float ad and native interstitials) — non-blocking, async
 - **Netlify Redirects:** Defined in `netlify.toml` (URL rewriting, cache headers, security headers)
 
 ## Key Files Reference

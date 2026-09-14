@@ -68,6 +68,14 @@ iframe {
     margin: 0 auto;
 }
 
+/* JuicyAds <ins> containers - keep them centered and never wider than the slot */
+.ad-banner-top ins,
+.sidebar-box ins {
+    display: block;
+    max-width: 100%;
+    margin: 0 auto;
+}
+
 @media (max-width: 767px) {
     .ad-banner-top {
         padding: 4px 0;
